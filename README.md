@@ -83,6 +83,24 @@ pip install .
 ```
 
 
+Note that if working off GPU server and using `truenas` the dev-mode (`pip install --editable .`) doesn't seem to work:
+
+```bash
+Traceback (most recent call last):
+  File "/home/alice/conda/envs/mxfold2-train/bin/mxfold2", line 5, in <module>
+    from mxfold2.__main__ import main
+  File "/mnt/dg_shared_truenas/for_alice/work/mxfold2/mxfold2/__main__.py", line 6, in <module>
+    from .predict import Predict
+  File "/mnt/dg_shared_truenas/for_alice/work/mxfold2/mxfold2/predict.py", line 14, in <module>
+    from .fold.mix import MixedFold
+  File "/mnt/dg_shared_truenas/for_alice/work/mxfold2/mxfold2/fold/mix.py", line 2, in <module>
+    from .. import interface
+ImportError: /mnt/dg_shared_truenas/for_alice/work/mxfold2/mxfold2/interface.cpython-39-x86_64-linux-gnu.so: failed to map segment from shared object
+```
+
+Instead do `pip install .`.
+
+
 
 <!-- test list of files:
 
@@ -97,15 +115,20 @@ mxfold2 train --model MixC --param wkdir/log/model.pth --save-config wkdir/log/m
 ``` -->
 
 
+### Training
+
+- updated code to only save the last checkpoint, it'll be named `checkpoint.pt`
+
+- added new dataset wrapper `RnaSdbDataset` to load parquet format (with cols: `seq_id`, `seq`, `db_structure`),
+replaced the default dataset with this one
+
 
 Training model on pq dataset (GPU):
 
 
 ```bash
 mkdir -p wkdir/run_1/
-CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param wkdir/run_1/model.pth --save-config wkdir/run_1/model.conf \
- --gpu 0 --log-dir wkdir/run_1/  \
- --epochs 10 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/split_1_cache_train.pq
+CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param wkdir/run_1/model.pth --save-config wkdir/run_1/model.conf --gpu 0 --log-dir wkdir/run_1/  --epochs 10 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/split_1_cache_train.pq
 ```
 
 Training model on pq dataset (CPU-test):
@@ -116,6 +139,9 @@ mxfold2 train --model MixC --param wkdir/run_0/model.pth --save-config wkdir/run
 --log-dir wkdir/run_0/  \
  --epochs 2  wkdir/split_3_cache_test.pq
 ```
+
+
+### Inference
 
 
 Inference on pq dataset:

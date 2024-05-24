@@ -5,6 +5,8 @@ import re
 import math
 import logging
 import pandas as pd
+from tqdm import tqdm
+
 
 class FastaDataset(Dataset):
     def __init__(self, fasta):
@@ -45,7 +47,7 @@ class RnaSdbDataset(Dataset):
         logging.info(f"Converting pq dataset: {pq_file_path}...")
         df = pd.read_parquet(pq_file_path)
         self.data = []
-        for _, row in df.iterrows():
+        for _, row in tqdm(df.iterrows()):
             seq_id = row['seq_id']
             seq = row['seq']
             db_str = row['db_structure']
