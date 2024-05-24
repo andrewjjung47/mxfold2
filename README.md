@@ -98,18 +98,27 @@ mxfold2 train --model MixC --param wkdir/log/model.pth --save-config wkdir/log/m
 
 
 
-Training model on pq dataset:
+Training model on pq dataset (GPU):
 
 
 ```bash
-mkdir -p wkdir/log/
-mxfold2 train --model MixC --param wkdir/log/model.pth --save-config wkdir/log/model.conf \
---log-dir wkdir/log/  \
+mkdir -p wkdir/run_1/
+CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param wkdir/run_1/model.pth --save-config wkdir/run_1/model.conf \
+ --gpu 0 --log-dir wkdir/run_1/  \
+ --epochs 10 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/split_1_cache_train.pq
+```
+
+Training model on pq dataset (CPU-test):
+
+```bash
+mkdir -p wkdir/run_0/
+mxfold2 train --model MixC --param wkdir/run_0/model.pth --save-config wkdir/run_0/model.conf \
+--log-dir wkdir/run_0/  \
  --epochs 2  wkdir/split_3_cache_test.pq
 ```
 
 
 Inference on pq dataset:
 
-
+TODO!
 
