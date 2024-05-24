@@ -128,7 +128,7 @@ Training model on pq dataset (GPU):
 
 ```bash
 mkdir -p wkdir/run_1/
-CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param wkdir/run_1/model.pth --save-config wkdir/run_1/model.conf --gpu 0 --log-dir wkdir/run_1/  --epochs 10 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/split_1_cache_train.pq
+CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param wkdir/run_1/model.pth --save-config wkdir/run_1/model.conf --gpu 0 --log-dir wkdir/run_1/  --epochs 10 --train_max_len 1000 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/split_1_cache_train.pq
 ```
 
 Training model on pq dataset (CPU-test):

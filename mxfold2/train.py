@@ -213,10 +213,10 @@ class Train:
         if args.log_dir is not None and 'SummaryWriter' in globals():
             self.writer = SummaryWriter(log_dir=args.log_dir)
 
-        train_dataset = RnaSdbDataset(args.input)
+        train_dataset = RnaSdbDataset(args.input, max_len=args.train_max_len)
         self.train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True)
         if args.test_input is not None:
-            test_dataset = RnaSdbDataset(args.test_input)
+            test_dataset = RnaSdbDataset(args.test_input, max_len=args.train_max_len)
             self.test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
         if args.seed >= 0:
@@ -271,6 +271,10 @@ class Train:
                             help='Training data. Pq file. Required cols: seq_id, seq, db_structure')
         subparser.add_argument('--test-input', type=str,
                             help='Test data. Pq file. Required cols: seq_id, seq, db_structure')
+        # added to prevent training on super long sequences
+        subparser.add_argument('--train_max_len', type=int, default=1000,
+                            help='Max seq length to train on.')
+
         subparser.add_argument('--gpu', type=int, default=-1, 
                             help='use GPU with the specified ID (default: -1 = CPU)')
         subparser.add_argument('--seed', type=int, default=0, metavar='S',
