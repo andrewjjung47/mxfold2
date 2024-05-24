@@ -75,13 +75,41 @@ mamba create -n mxfold2-train python=3.9 ipython
 
 mamba activate mxfold2-train
 
-mamba install numpy pybind11 pytorch==1.13.1 torchvision pytorch-cuda=11.7 tqdm wheel -c pytorch -c nvidia
-mamba install numpy pybind11 pytorch==1.13.1 torchvision tqdm wheel -c pytorch   # no GPU
+mamba install numpy pandas fastparquet pybind11 pytorch==1.13.1 torchvision pytorch-cuda=11.7 tqdm wheel -c pytorch -c nvidia
+# mamba install numpy pandas fastparquet pybind11 pytorch==1.13.1 torchvision tqdm wheel -c pytorch   # no GPU
 
 pip install .
+# for dev: pip install --editable .
 ```
 
 
+
+<!-- test list of files:
+
+```bash
+mkdir wkdir
+ls -a1 ../rna_sdb/datasets/bpRNA/bprna/TS0/bpRNA_RFAM_15* | xargs realpath > wkdir/bprna_tr0_small.lst
+
+mkdir wkdir/log
+mxfold2 train --model MixC --param wkdir/log/model.pth --save-config wkdir/log/model.conf \
+--log-dir wkdir/log/  \
+ --epochs 2  wkdir/bprna_tr0_small.lst
+``` -->
+
+
+
+Training model on pq dataset:
+
+
+```bash
+mkdir -p wkdir/log/
+mxfold2 train --model MixC --param wkdir/log/model.pth --save-config wkdir/log/model.conf \
+--log-dir wkdir/log/  \
+ --epochs 2  wkdir/split_3_cache_test.pq
+```
+
+
+Inference on pq dataset:
 
 
 

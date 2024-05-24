@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 from argparse import ArgumentParser
 
 from .predict import Predict
@@ -19,6 +20,9 @@ def main():
     Predict.add_args(subparser)
     # ShowParam.add_args(subparser)
     args = parser.parse_args()
+
+    logging.basicConfig()
+    logging.getLogger().setLevel(logging.INFO)
 
     if hasattr(args, 'param'):
         if args.param == '':
