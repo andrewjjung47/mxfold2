@@ -92,7 +92,8 @@ class Train:
 
 
     def save_checkpoint(self, outdir, epoch):
-        filename = os.path.join(outdir, 'epoch-{}'.format(epoch))
+        # filename = os.path.join(outdir, 'epoch-{}'.format(epoch))
+        filename = os.path.join(outdir, 'checkpoint.pt')
         torch.save({
             'epoch': epoch,
             'model_state_dict': self.model.state_dict(),
@@ -249,8 +250,10 @@ class Train:
             self.train(epoch)
             if self.test_loader is not None:
                 self.test(epoch)
-            if args.log_dir is not None:
-                self.save_checkpoint(args.log_dir, epoch)
+
+        # only saving the last checkpoint
+        if args.log_dir is not None:
+            self.save_checkpoint(args.log_dir, epoch)
 
         if args.param is not None:
             torch.save(self.model.state_dict(), args.param)

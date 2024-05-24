@@ -62,3 +62,26 @@ A web server is working at http://www.dna.bio.keio.ac.jp/mxfold2/.
 ## References
 
 * Sato, K., Akiyama, M., Sakakibara, Y.: RNA secondary structure prediction using deep learning with thermodynamic integration. *Nat Commun* **12**, 941 (2021). https://doi.org/10.1038/s41467-021-21194-4
+
+
+
+## Added by Alice
+
+### Setup
+
+
+```bash
+mamba create -n mxfold2-train python=3.9 ipython
+
+mamba activate mxfold2-train
+
+mamba install numpy pybind11 pytorch==1.13.1 torchvision pytorch-cuda=11.7 tqdm wheel -c pytorch -c nvidia
+mamba install numpy pybind11 pytorch==1.13.1 torchvision tqdm wheel -c pytorch   # no GPU
+
+pip install .
+```
+
+
+
+
+
