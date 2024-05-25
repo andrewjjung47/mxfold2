@@ -22,7 +22,7 @@ class Predict:
         self.test_loader = None
 
 
-    def predict(self, output_bpseq=None, output_bpp=None, result=None, use_constraint=False):
+    def predict(self, output_bpseq=None, output_bpp=None, result=None, use_constraint=False, max_num=None):
         res_fn = open(result, 'w') if result is not None else None
         self.model.eval()
 
@@ -73,6 +73,9 @@ class Predict:
                         # fn = os.path.join(output_bpp, fn+".bpp")
                         # np.savetxt(fn, bpp, fmt='%.5f')
                         df.append({'seq': seq, 'bp_matrix': bpp})
+                        if max_num is not None and len(df) >= max_num:
+                            logging.info(f"max_num={max_num} specified. Stopping.")
+                            break
         # TODO export df to pq format
         df = pd.DataFrame(df)
         os.makedirs(os.path.dirname(output_bpp), exist_ok=True)
@@ -160,7 +163,11 @@ class Predict:
         if args.gpu >= 0:
             self.model.to(torch.device("cuda", args.gpu))
 
-        self.predict(output_bpseq=args.bpseq, output_bpp=args.bpp, result=args.result, use_constraint=args.use_constraint)
+        self.predict(output_bpseq=None,  # args.bpseq,   # Alice: not supporting this after my hacky changes
+                     output_bpp=args.bpp,  
+                     result=None,  # args.result,  # Alice: not supporting this after my hacky changes
+                     use_constraint=None,  # args.use_constraint,   # Alice: I want to prevent the target being passed in
+                     max_num=args.max_num)
 
 
     @classmethod
@@ -171,6 +178,9 @@ class Predict:
         #                     help='FASTA-formatted file or list of BPseq files')
         subparser.add_argument('input', type=str,
                             help='Dataset. Pq file. Required cols: seq_id, seq, db_structure')
+        # added to prevent training on super long sequences
+        subparser.add_argument('--max_num', type=int,
+                            help='Max number of seq to predict. For debug use.')
 
         subparser.add_argument('--seed', type=int, default=0, metavar='S',
                             help='random seed (default: 0)')
@@ -178,11 +188,11 @@ class Predict:
                             help='use GPU with the specified ID (default: -1 = CPU)')
         subparser.add_argument('--param', type=str, default='',
                             help='file name of trained parameters') 
-        subparser.add_argument('--use-constraint', default=False, action='store_true')
-        subparser.add_argument('--result', type=str, default=None,
-                            help='output the prediction accuracy if reference structures are given')
-        subparser.add_argument('--bpseq', type=str, default=None,
-                            help='output the prediction with BPSEQ format to the specified directory')
+        # subparser.add_argument('--use-constraint', default=False, action='store_true')   # Alice: I want to prevent the target being passed in
+        # subparser.add_argument('--result', type=str, default=None,
+        #                     help='output the prediction accuracy if reference structures are given')
+        # subparser.add_argument('--bpseq', type=str, default=None,
+        #                     help='output the prediction with BPSEQ format to the specified directory')
         subparser.add_argument('--bpp', type=str, default=None,
                             help='output the base-pairing probability matrix to the specified directory')
 
