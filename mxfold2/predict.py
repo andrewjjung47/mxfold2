@@ -26,7 +26,7 @@ class Predict:
         res_fn = open(result, 'w') if result is not None else None
         self.model.eval()
 
-        # df with col: seq, bp_matrix
+        # df with col: seq, bpseq, bp_matrix
         df = []
 
         with torch.no_grad():
@@ -66,13 +66,17 @@ class Predict:
                         x = [header, len(seq), elapsed_time, sc.item()] + list(x) + list(accuracy(*x))
                         res_fn.write(', '.join([str(v) for v in x]) + "\n")
                     if output_bpp is not None:
+                        # Alice: I've updated this to export both bpseq-like result and the matrix
+                        # bpseq-like list, copied from above code
+                        bpseq_lst = []
+                        for i in range(1, len(bp)):
+                            bpseq_lst.append((i, seq[i-1], bp[i]))
+                            # print(f'{i}\t{seq[i-1]}\t{bp[i]}')
+                        # matrix (note that size is len(seq)+1!!!)
                         bpp = np.triu(bpp)
                         bpp = bpp + bpp.T
-                        # fn = os.path.basename(header)
-                        # fn = os.path.splitext(fn)[0] 
-                        # fn = os.path.join(output_bpp, fn+".bpp")
-                        # np.savetxt(fn, bpp, fmt='%.5f')
                         df.append({'seq': seq, 
+                                   'bpseq': bpseq_lst,
                                    'bp_matrix': bpp.tolist(),   # parquet can't do 2D arrays, convert to list
                                    })
 

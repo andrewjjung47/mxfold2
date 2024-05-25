@@ -163,6 +163,7 @@ CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param wkdir/debug_1/checkp
 ### Debug notes
 
 
+#### 2024-05-25
 
 debug run on small test set:
 
@@ -172,3 +173,14 @@ CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param wkdir/debug_1/model.pt
 ```
 
 This generates `wkdir/debug_1/checkpoint.pt` for debug use.
+
+
+Run inference:
+
+
+```bash
+CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param wkdir/debug_1/checkpoint.pt --gpu 0 --bpp wkdir/debug_1/prediction.pq --max_num 10 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/split_3_cache_test.pq
+```
+
+
+
