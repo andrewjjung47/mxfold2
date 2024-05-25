@@ -41,10 +41,10 @@ class Train:
         start = time.time()
         with tqdm(total=n_dataset, disable=self.disable_progress_bar) as pbar:
             for fnames, seqs, pairs in self.train_loader:
-                if self.verbose:
-                    print()
-                    print("Step: {}, {}".format(self.step, fnames))
-                    self.step += 1
+                # if self.verbose:
+                #     print()
+                #     print("Step: {}, {}".format(self.step, fnames))
+                self.step += 1
                 n_batch = len(seqs)
                 self.optimizer.zero_grad()
 
