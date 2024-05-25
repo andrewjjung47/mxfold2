@@ -153,7 +153,7 @@ Inference on pq dataset (set `max_num` to process a small number of seqs for deb
 
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param wkdir/debug_1/checkpoint.pt --gpu 0 --bpp wkdir/debug_1/prediction.pq --max_num 100 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/split_3_cache_test.pq
+CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param wkdir/debug_1/checkpoint.pt --gpu 0 --bpp wkdir/debug_1/prediction.pq --max_num 10 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/split_3_cache_test.pq
 ```
 
 

@@ -28,9 +28,15 @@ class Predict:
 
         # df with col: seq, bp_matrix
         df = []
+        n = 0
 
         with torch.no_grad():
             for headers, seqs, refs in tqdm(self.test_loader, total=len(self.test_loader)):
+                if max_num is not None and n >= max_num:
+                    logging.info(f"max_num={max_num} specified. Stopping.")
+                    break
+                n += 1
+
                 start = time.time()
                 if output_bpp is None:
                     if use_constraint:
@@ -73,9 +79,7 @@ class Predict:
                         # fn = os.path.join(output_bpp, fn+".bpp")
                         # np.savetxt(fn, bpp, fmt='%.5f')
                         df.append({'seq': seq, 'bp_matrix': bpp})
-                        if max_num is not None and len(df) >= max_num:
-                            logging.info(f"max_num={max_num} specified. Stopping.")
-                            break
+
         # TODO export df to pq format
         df = pd.DataFrame(df)
         os.makedirs(os.path.dirname(output_bpp), exist_ok=True)
