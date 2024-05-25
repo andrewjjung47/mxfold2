@@ -72,7 +72,9 @@ class Predict:
                         # fn = os.path.splitext(fn)[0] 
                         # fn = os.path.join(output_bpp, fn+".bpp")
                         # np.savetxt(fn, bpp, fmt='%.5f')
-                        df.append({'seq': seq, 'bp_matrix': bpp})
+                        df.append({'seq': seq, 
+                                   'bp_matrix': bpp.tolist(),   # parquet can't do 2D arrays, convert to list
+                                   })
 
         # TODO export df to pq format
         df = pd.DataFrame(df)
