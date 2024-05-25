@@ -115,6 +115,9 @@ mxfold2 train --model MixC --param wkdir/log/model.pth --save-config wkdir/log/m
 ``` -->
 
 
+
+
+
 ### Training
 
 - updated code to only save the last checkpoint, it'll be named `checkpoint.pt`
@@ -140,11 +143,32 @@ mxfold2 train --model MixC --param wkdir/run_0/model.pth --save-config wkdir/run
  --epochs 2  wkdir/split_3_cache_test.pq
 ```
 
+TODO slow for long sequences?
+
 
 ### Inference
 
 
 Inference on pq dataset:
 
+
+```bash
+CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param wkdir/debug_1/checkpoint.pt --gpu 0 --bpp wkdir/debug_1/prediction.pq /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/split_3_cache_test.pq
+```
+
 TODO!
 
+
+
+### Debug notes
+
+
+
+debug run on small test set:
+
+
+```bash
+CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param wkdir/debug_1/model.pth --save-config wkdir/debug_1/model.conf --gpu 0 --log-dir wkdir/debug_1/  --epochs 1 --train_max_len 100 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/split_3_cache_test.pq
+```
+
+This generates `wkdir/debug_1/checkpoint.pt` for debug use.

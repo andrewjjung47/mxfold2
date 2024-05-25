@@ -2,15 +2,16 @@ import os
 import random
 import time
 from pathlib import Path
-
+import pandas as pd
+import logging
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import numpy as np
-
+from tqdm import tqdm
 from .compbpseq import accuracy, compare_bpseq
-from .dataset import BPseqDataset, FastaDataset
+from .dataset import RnaSdbDataset  # BPseqDataset, FastaDataset
 from .fold.mix import MixedFold
 from .fold.rnafold import RNAFold
 from .fold.zuker import ZukerFold
@@ -24,8 +25,12 @@ class Predict:
     def predict(self, output_bpseq=None, output_bpp=None, result=None, use_constraint=False):
         res_fn = open(result, 'w') if result is not None else None
         self.model.eval()
+
+        # df with col: seq, bp_matrix
+        df = []
+
         with torch.no_grad():
-            for headers, seqs, refs in self.test_loader:
+            for headers, seqs, refs in tqdm(self.test_loader, total=len(self.test_loader)):
                 start = time.time()
                 if output_bpp is None:
                     if use_constraint:
@@ -63,10 +68,16 @@ class Predict:
                     if output_bpp is not None:
                         bpp = np.triu(bpp)
                         bpp = bpp + bpp.T
-                        fn = os.path.basename(header)
-                        fn = os.path.splitext(fn)[0] 
-                        fn = os.path.join(output_bpp, fn+".bpp")
-                        np.savetxt(fn, bpp, fmt='%.5f')
+                        # fn = os.path.basename(header)
+                        # fn = os.path.splitext(fn)[0] 
+                        # fn = os.path.join(output_bpp, fn+".bpp")
+                        # np.savetxt(fn, bpp, fmt='%.5f')
+                        df.append({'seq': seq, 'bp_matrix': bpp})
+        # TODO export df to pq format
+        df = pd.DataFrame(df)
+        os.makedirs(os.path.dirname(output_bpp), exist_ok=True)
+        logging.info(f"Exporting output df to: {output_bpp}")
+        df.to_parquet(output_bpp)
 
 
     def build_model(self, args):
@@ -126,9 +137,10 @@ class Predict:
 
 
     def run(self, args, conf=None):
-        test_dataset = FastaDataset(args.input)
-        if len(test_dataset) == 0:
-            test_dataset = BPseqDataset(args.input)
+        # test_dataset = FastaDataset(args.input)
+        # if len(test_dataset) == 0:
+        #     test_dataset = BPseqDataset(args.input)
+        test_dataset = RnaSdbDataset(args.input)
         self.test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
         if args.seed >= 0:
@@ -155,8 +167,10 @@ class Predict:
     def add_args(cls, parser):
         subparser = parser.add_parser('predict', help='predict')
         # input
+        # subparser.add_argument('input', type=str,
+        #                     help='FASTA-formatted file or list of BPseq files')
         subparser.add_argument('input', type=str,
-                            help='FASTA-formatted file or list of BPseq files')
+                            help='Dataset. Pq file. Required cols: seq_id, seq, db_structure')
 
         subparser.add_argument('--seed', type=int, default=0, metavar='S',
                             help='random seed (default: 0)')
