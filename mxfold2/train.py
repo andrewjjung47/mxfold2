@@ -222,7 +222,7 @@ class Train:
     def run(self, args, conf=None):
         wandb.init(
             entity="psi-lab",  # TODO hard-coded to Alice's account
-            project="mxfold2-train",  # TODO hard-coded
+            project="rna-sdb-mxfold2-train",  # TODO hard-coded
             # Track hyperparameters and run metadata
             config=args,
         )
