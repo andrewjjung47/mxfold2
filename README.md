@@ -83,7 +83,7 @@ pip install .
 ```
 
 
-> [!CAUTION] Note that if working off GPU server and using `truenas` the dev-mode (`pip install --editable .`) doesn't seem to work. Instead do `pip install .`.
+:exclamation: Note that if working off GPU server and using `truenas` the dev-mode (`pip install --editable .`) doesn't seem to work. Instead do `pip install .`.
 
 ```bash
 Traceback (most recent call last):
