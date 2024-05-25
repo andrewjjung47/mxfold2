@@ -157,6 +157,14 @@ CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param wkdir/debug_1/checkp
 ```
 
 
+- writes to a df with 3 cols: 
+
+    - `seq`: just the sequence
+
+    - `bpseq`: bpseq-like list (length `len(seq)`) of 3-tuples, something like: `[[1, 'A', 0], [2, 'A', 0], [3, 'G', 0], [4, 'A', 0], ...]`  (note that bpseq indices are 1-based)
+
+    - `bp_matrix`: 2D matrix returned by their script, I'm still not sure what this is (did not dive deep into their inference code) 
+    (note that the shape is `(len(seq)+1) x (len(seq)+1)`)
 
 
 
@@ -181,6 +189,40 @@ Run inference:
 ```bash
 CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param wkdir/debug_1/checkpoint.pt --gpu 0 --bpp wkdir/debug_1/prediction.pq --max_num 10 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/split_3_cache_test.pq
 ```
+
+
+
+Inspect ouptut:
+
+```python
+import numpy as np
+import pandas as pd
+
+df = pd.read_parquet('wkdir/debug_1/prediction.pq')
+seq = df.iloc[0]['seq']
+x = np.array(df.iloc[0]['bp_matrix'])
+bpseq = df.iloc[0]['bpseq']
+
+print(len(seq), len(bpseq), x.shape)  # 217 217 (218, 218)
+
+bpseq[:4]  # [[1, 'A', 0], [2, 'A', 0], [3, 'G', 0], [4, 'A', 0]]
+
+np.sum(x)  # 0.024204140787577863  # Hmm...
+```
+
+
+
+Added wandb logging (hard-coded to my account, not uploading model artifact). 
+See if we can overfit on small test set by training for more epochs:
+
+
+```bash
+CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param wkdir/debug_2/model.pth --save-config wkdir/debug_2/model.conf --gpu 0 --log-dir wkdir/debug_2/  --epochs 10 --train_max_len 500 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/split_3_cache_test.pq
+```
+
+
+check `wkdir/debug_2`: TODO
+
 
 
 

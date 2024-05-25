@@ -22,6 +22,8 @@ try:
 except ImportError:
     pass
 
+import wandb
+
 
 class Train:
     step = 0
@@ -45,7 +47,18 @@ class Train:
                     self.step += 1
                 n_batch = len(seqs)
                 self.optimizer.zero_grad()
+
+                start_time_loss = time.time()
                 loss = torch.sum(self.loss_fn(seqs, pairs, fname=fnames))
+
+                wandb.log({"train/loss": loss.item(), 
+                           "epoch": epoch,
+                           # I suspect some examples are super slow, so I'm logging len and time
+                           "train/seq_len": len(seqs[0]),  # FIXME assume batch size 1!
+                           "train/loss_time": time.time() - start_time_loss,
+                           }, 
+                        step=self.step)
+
                 loss_total += loss.item()
                 num += n_batch
                 if loss.item() > 0.:
@@ -207,6 +220,13 @@ class Train:
 
 
     def run(self, args, conf=None):
+        wandb.init(
+            entity="psi-lab",  # TODO hard-coded to Alice's account
+            project="mxfold2-train",  # TODO hard-coded
+            # Track hyperparameters and run metadata
+            config=args,
+        )
+
         self.disable_progress_bar = args.disable_progress_bar
         self.verbose = args.verbose
         self.writer = None
@@ -253,6 +273,7 @@ class Train:
 
         # only saving the last checkpoint
         if args.log_dir is not None:
+            os.makedirs(args.log_dir, exist_ok=True)
             self.save_checkpoint(args.log_dir, epoch)
 
         if args.param is not None:
