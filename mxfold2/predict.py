@@ -22,21 +22,15 @@ class Predict:
         self.test_loader = None
 
 
-    def predict(self, output_bpseq=None, output_bpp=None, result=None, use_constraint=False, max_num=None):
+    def predict(self, output_bpseq=None, output_bpp=None, result=None, use_constraint=False):
         res_fn = open(result, 'w') if result is not None else None
         self.model.eval()
 
         # df with col: seq, bp_matrix
         df = []
-        n = 0
 
         with torch.no_grad():
             for headers, seqs, refs in tqdm(self.test_loader, total=len(self.test_loader)):
-                if max_num is not None and n >= max_num:
-                    logging.info(f"max_num={max_num} specified. Stopping.")
-                    break
-                n += 1
-
                 start = time.time()
                 if output_bpp is None:
                     if use_constraint:
@@ -148,6 +142,11 @@ class Predict:
         # if len(test_dataset) == 0:
         #     test_dataset = BPseqDataset(args.input)
         test_dataset = RnaSdbDataset(args.input)
+
+        if args.max_num is not None:
+            logging.info(f"Subsetting dataset to max_num={args.max_num}.")
+            test_dataset = torch.utils.data.Subset(test_dataset, range(args.max_num))
+
         self.test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
         if args.seed >= 0:
@@ -171,7 +170,7 @@ class Predict:
                      output_bpp=args.bpp,  
                      result=None,  # args.result,  # Alice: not supporting this after my hacky changes
                      use_constraint=None,  # args.use_constraint,   # Alice: I want to prevent the target being passed in
-                     max_num=args.max_num)
+                    )
 
 
     @classmethod
