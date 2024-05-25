@@ -83,7 +83,7 @@ pip install .
 ```
 
 
-Note that if working off GPU server and using `truenas` the dev-mode (`pip install --editable .`) doesn't seem to work:
+> [!CAUTION] Note that if working off GPU server and using `truenas` the dev-mode (`pip install --editable .`) doesn't seem to work. Instead do `pip install .`.
 
 ```bash
 Traceback (most recent call last):
@@ -98,7 +98,7 @@ Traceback (most recent call last):
 ImportError: /mnt/dg_shared_truenas/for_alice/work/mxfold2/mxfold2/interface.cpython-39-x86_64-linux-gnu.so: failed to map segment from shared object
 ```
 
-Instead do `pip install .`.
+
 
 
 
@@ -156,7 +156,7 @@ Inference on pq dataset:
 CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param wkdir/debug_1/checkpoint.pt --gpu 0 --bpp wkdir/debug_1/prediction.pq /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/split_3_cache_test.pq
 ```
 
-TODO!
+
 
 
 
