@@ -116,7 +116,7 @@ class RnaSdbDataset(Dataset):
         # mxfold2 expect the target to be the pairing indices (i.e. 3rd col of BPSEQ format),
         # with a leading 0 (i.e. list length is len(seq)+1)
         # start with a list of 0's, 0 represent no-pairing
-        target = [0] * len(seq_len)
+        target = [0] * seq_len
         # go through the pairs, set their corresponding entry to the pairing index
         # note that we need 1-based index!!!
         for i, j in zip(pair_idx[0], pair_idx[1]):  # 0-based
@@ -124,7 +124,7 @@ class RnaSdbDataset(Dataset):
         # add the leading 0
         target = [0] + target
         # check len
-        assert len(target) == len(seq_len) + 1
+        assert len(target) == seq_len + 1
         return target
 
 
