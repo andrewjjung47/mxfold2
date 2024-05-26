@@ -125,7 +125,7 @@ class RnaSdbDataset(Dataset):
         target = [0] + target
         # check len
         assert len(target) == seq_len + 1
-        return target
+        return torch.tensor(target)   # to be consistent with their code! this should be all int!!!!
 
 
 class BPseqDataset(Dataset):
