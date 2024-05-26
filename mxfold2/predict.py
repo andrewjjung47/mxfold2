@@ -70,14 +70,15 @@ class Predict:
                         # bpseq-like list, copied from above code
                         bpseq_lst = []
                         for i in range(1, len(bp)):
-                            bpseq_lst.append((i, seq[i-1], bp[i]))
+                            # bpseq_lst.append((i, seq[i-1], bp[i]))
+                            bpseq_lst.append((i, bp[i]))
                             # print(f'{i}\t{seq[i-1]}\t{bp[i]}')
                         # matrix (note that size is len(seq)+1!!!)
                         bpp = np.triu(bpp)
                         bpp = bpp + bpp.T
                         df.append({'seq': seq, 
                                    'bpseq': bpseq_lst,
-                                #    'bp_matrix': bpp.tolist(),   # parquet can't do 2D arrays, convert to list
+                                   'bp_matrix': bpp.tolist(),   # parquet can't do 2D arrays, convert to list
                                    })
 
         # TODO export df to pq format
