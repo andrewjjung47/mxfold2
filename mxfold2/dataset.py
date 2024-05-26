@@ -6,6 +6,7 @@ import math
 import logging
 import pandas as pd
 from tqdm import tqdm
+from typing import Tuple
 
 
 class FastaDataset(Dataset):
@@ -36,6 +37,52 @@ class FastaDataset(Dataset):
             yield (headerStr, seq, torch.tensor([]))
 
 
+# class RnaSdbDataset(Dataset):
+
+#     def __init__(self, pq_file_path: str,  # path to pq file
+#                  max_len: int = None):
+#         # create dataset in format expected by mxfold
+#         # each example is tuple of 3 elements:
+#         # - [str] name of the "file" - we'll use `seq_id`
+#         # - [str] sequence
+#         # - [list] pair_indices
+#         logging.info(f"Converting pq dataset: {pq_file_path}...")
+#         df = pd.read_parquet(pq_file_path)
+#         self.data = []
+#         for _, row in tqdm(df.iterrows(), total=len(df)):
+#             seq_id = row['seq_id']
+#             seq = row['seq']
+#             if max_len is not None and len(seq) > max_len:
+#                 continue
+#             db_str = row['db_structure']
+#             target = self.db_to_target(db_str)
+#             self.data.append((seq_id, seq, target))
+#         logging.info(f"Converted {len(self.data)} examples (out of {len(df)}).")
+
+#     def __len__(self):
+#         return len(self.data)
+
+#     def __getitem__(self, idx):
+#         return self.data[idx]
+
+#     @staticmethod
+#     def db_to_target(db_str: str) -> list:
+#         pairs = db2pairs(db_str)
+#         # mxfold2 expect the target to be the pairing indices (i.e. 3rd col of BPSEQ format),
+#         # with a leading 0 (i.e. list length is len(seq)+1)
+#         # start with a list of 0's, 0 represent no-pairing
+#         target = [0] * len(db_str)
+#         # go through the pairs, set their corresponding entry to the pairing index
+#         # note that we need 1-based index!!!
+#         for i, j in pairs:
+#             target[i] = j + 1  # 1-based
+#         # add the leading 0
+#         target = [0] + target
+#         # check len
+#         assert len(target) == len(db_str) + 1
+#         return target
+
+
 class RnaSdbDataset(Dataset):
 
     def __init__(self, pq_file_path: str,  # path to pq file
@@ -53,8 +100,8 @@ class RnaSdbDataset(Dataset):
             seq = row['seq']
             if max_len is not None and len(seq) > max_len:
                 continue
-            db_str = row['db_structure']
-            target = self.db_to_target(db_str)
+            pair_idx = row['pair_indices']
+            target = self.db_to_target(pair_idx, len(seq))
             self.data.append((seq_id, seq, target))
         logging.info(f"Converted {len(self.data)} examples (out of {len(df)}).")
 
@@ -65,20 +112,19 @@ class RnaSdbDataset(Dataset):
         return self.data[idx]
 
     @staticmethod
-    def db_to_target(db_str: str) -> list:
-        pairs = db2pairs(db_str)
+    def db_to_target(pair_idx: Tuple[list, list], seq_len: int) -> list:
         # mxfold2 expect the target to be the pairing indices (i.e. 3rd col of BPSEQ format),
         # with a leading 0 (i.e. list length is len(seq)+1)
         # start with a list of 0's, 0 represent no-pairing
-        target = [0] * len(db_str)
+        target = [0] * len(seq_len)
         # go through the pairs, set their corresponding entry to the pairing index
         # note that we need 1-based index!!!
-        for i, j in pairs:
+        for i, j in zip(pair_idx[0], pair_idx[1]):  # 0-based
             target[i] = j + 1  # 1-based
         # add the leading 0
         target = [0] + target
         # check len
-        assert len(target) == len(db_str) + 1
+        assert len(target) == len(seq_len) + 1
         return target
 
 

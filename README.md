@@ -75,12 +75,15 @@ mamba create -n mxfold2-train python=3.9 ipython
 
 mamba activate mxfold2-train
 
-mamba install numpy pandas fastparquet pybind11 pytorch==1.13.1 torchvision pytorch-cuda=11.7 tqdm wandb wheel -c pytorch -c nvidia
+mamba install numpy pandas pyarrow pybind11 pytorch==1.13.1 torchvision pytorch-cuda=11.7 tqdm wandb wheel -c pytorch -c nvidia
+# mamba install numpy pandas fastparquet pybind11 pytorch==1.13.1 torchvision pytorch-cuda=11.7 tqdm wandb wheel -c pytorch -c nvidia
 # mamba install numpy pandas fastparquet pybind11 pytorch==1.13.1 torchvision tqdm wheel -c pytorch   # no GPU
 
 pip install .
 # for dev: pip install --editable .
 ```
+
+:exclamation:  Make sure to install `pyarrow` not `fastparquet`, so that we can load Andrew's `pq` dataset. 
 
 
 :exclamation: Note that if working off GPU server and using `truenas` the dev-mode (`pip install --editable .`) doesn't seem to work. Instead do `pip install .`.
@@ -220,9 +223,31 @@ See if we can overfit on small test set by training for more epochs:
 WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param wkdir/debug_2/model.pth --save-config wkdir/debug_2/model.conf --gpu 0 --log-dir wkdir/debug_2/  --epochs 10 --train_max_len 500 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/split_3_cache_test.pq
 ```
 
+Some long sequences are really slow: https://wandb.ai/psi-lab/rna-sdb-mxfold2-train/runs/5gyi0a0g
+
+Set max len to 100 and rerun:
+
+
+```bash
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param wkdir/debug_2/model.pth --save-config wkdir/debug_2/model.conf --gpu 0 --log-dir wkdir/debug_2/  --epochs 10 --train_max_len 100 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/split_3_cache_test.pq
+```
+
+
+Why is this not improving? loss looks weird... shall we train their training set and run from master branch?
+
+
+
 
 check `wkdir/debug_2`: TODO
 
+
+
+#### 2024-05-26
+
+
+```bash
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param wkdir/debug_3/model.pth --save-config wkdir/debug_3/model.conf --gpu 0 --log-dir wkdir/debug_3/  --epochs 10 --train_max_len 100 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/bpRNA/bprna_for_alice.pq
+```
 
 
 
