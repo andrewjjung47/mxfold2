@@ -77,7 +77,7 @@ class Predict:
                         bpp = bpp + bpp.T
                         df.append({'seq': seq, 
                                    'bpseq': bpseq_lst,
-                                   'bp_matrix': bpp.tolist(),   # parquet can't do 2D arrays, convert to list
+                                #    'bp_matrix': bpp.tolist(),   # parquet can't do 2D arrays, convert to list
                                    })
 
         # TODO export df to pq format
