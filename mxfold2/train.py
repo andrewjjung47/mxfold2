@@ -233,10 +233,12 @@ class Train:
         if args.log_dir is not None and 'SummaryWriter' in globals():
             self.writer = SummaryWriter(log_dir=args.log_dir)
 
-        train_dataset = RnaSdbDataset(args.input, max_len=args.train_max_len)
+        if args.train_max_len is not None:
+            train_dataset = RnaSdbDataset(args.input, max_len=args.train_max_len)
         self.train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True)
         if args.test_input is not None:
-            test_dataset = RnaSdbDataset(args.test_input, max_len=args.train_max_len)
+            if args.train_max_len is not None:
+                test_dataset = RnaSdbDataset(args.test_input, max_len=args.train_max_len)
             self.test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
         if args.seed >= 0:

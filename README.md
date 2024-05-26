@@ -267,4 +267,23 @@ update data loader to return torch tensor:
 WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param wkdir/debug_4/model.pth --save-config wkdir/debug_4/model.conf --gpu 0 --log-dir wkdir/debug_4/  --epochs 2 --train_max_len 100 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/bpRNA/bprna_for_alice.pq
 ```
 
+run: https://wandb.ai/psi-lab/rna-sdb-mxfold2-train/runs/c09a4s98, 
+loss scale seems to be more consistent with what was seen from their master branch!
+
+
+```bash
+CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param wkdir/debug_4/checkpoint.pt --gpu 0 --bpp wkdir/debug_4/prediction.pq --max_num 50 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/bpRNA/bprna_for_alice.pq
+```
+
+train on full bprna without length limit:
+
+
+```bash
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param wkdir/debug_5/model.pth --save-config wkdir/debug_5/model.conf --gpu 0 --log-dir wkdir/debug_5/  --epochs 10  /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/bpRNA/xxx.pq
+```
+
+
+
+
+
 
