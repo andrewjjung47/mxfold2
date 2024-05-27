@@ -302,9 +302,12 @@ Inspect predictions: looks good. Update inference to upload predictions to wandb
 WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v0 --gpu 0 --bpp wkdir/debug_6/prediction.pq --max_num 50 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/bpRNA/bprna_for_alice.pq
 ```
 
-Check wandb model artifact: 
+Check wandb model artifact: `psi-lab/rna-sdb-mxfold2-predict/mxfold2-prediction:v0` looks ok.
 
 
+
+
+### Experiments on rna-sdb dataset
 
 
 From Andrew:
@@ -318,7 +321,26 @@ For the testing, you can use mxfold2_archiveII_split_*.pq but please make sure t
 ```
 
 
+Training (each split on one GPU):
+
+
+```bash
+mamba activate mxfold2-train
+cd /mnt/dg_shared_truenas/for_alice/work/mxfold2
+export SPLIT_ID=1
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param wkdir/rna_sdb/split_${SPLIT_ID}/model.pth --save-config wkdir/rna_sdb/split_${SPLIT_ID}/model.conf --gpu 0 --log-dir wkdir/rna_sdb/split_${SPLIT_ID}/  --epochs 1  /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/mxfold2_rnasdb_split_${SPLIT_ID}_train.pq
+
+
+mamba activate mxfold2-train
+cd /mnt/dg_shared_truenas/for_alice/work/mxfold2
+export SPLIT_ID=2
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=1 mxfold2 train --model MixC --param wkdir/rna_sdb/split_${SPLIT_ID}/model.pth --save-config wkdir/rna_sdb/split_${SPLIT_ID}/model.conf --gpu 0 --log-dir wkdir/rna_sdb/split_${SPLIT_ID}/  --epochs 1  /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/mxfold2_rnasdb_split_${SPLIT_ID}_train.pq
+```
+
+
+Inference: check wandb model artifact from above runs, make sure to use the corresponding one for testing  TODO
 
 
 
+send results to Andrew, annotate wandb artifact ID (from my project) for reproducibility  TODO
 

@@ -119,10 +119,11 @@ class RnaSdbDataset(Dataset):
         target = [0] * seq_len
         # go through the pairs, set their corresponding entry to the pairing index
         # note that we need 1-based index!!!
-        for i, j in zip(pair_idx[0], pair_idx[1]):  # 0-based
-            target[i] = j + 1  # 1-based
-        # add the leading 0
-        target = [0] + target
+        if len(pair_idx) > 0:  # handle edge case where there's no structure!
+            for i, j in zip(pair_idx[0], pair_idx[1]):  # 0-based
+                target[i] = j + 1  # 1-based
+        # add the leading 0  (I suspect they want the query and value to be both 1-based)
+        target = [0] + target   
         # check len
         assert len(target) == seq_len + 1
         return torch.tensor(target)   # to be consistent with their code! this should be all int!!!!
