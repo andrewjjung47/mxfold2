@@ -491,3 +491,20 @@ send results to Andrew, annotate wandb artifact ID (from my project) for reprodu
 - split_8: local: `wkdir/rna_sdb/split_8/prediction.pq`: wandb: `psi-lab/rna-sdb-mxfold2-predict/mxfold2-prediction:v8`
 
 
+Copy and rename the files and put in one folder for Andrew:
+
+```bash
+export RNASDB_PRED_DIR="/mnt/dg_shared_truenas/for_alice/data/rna_sdb/2024_05_27"
+mkdir -p $RNASDB_PRED_DIR
+
+cp wkdir/rna_sdb/split_1/prediction.pq ${RNASDB_PRED_DIR}/prediction_split_1.pq
+cp wkdir/rna_sdb/split_2/prediction.pq ${RNASDB_PRED_DIR}/prediction_split_2.pq
+cp wkdir/rna_sdb/split_3/prediction.pq ${RNASDB_PRED_DIR}/prediction_split_3.pq
+cp wkdir/rna_sdb/split_4/prediction.pq ${RNASDB_PRED_DIR}/prediction_split_4.pq
+cp wkdir/rna_sdb/split_5/prediction.pq ${RNASDB_PRED_DIR}/prediction_split_5.pq
+cp wkdir/rna_sdb/split_6/prediction.pq ${RNASDB_PRED_DIR}/prediction_split_6.pq
+cp wkdir/rna_sdb/split_7/prediction.pq ${RNASDB_PRED_DIR}/prediction_split_7.pq
+cp wkdir/rna_sdb/split_8/prediction.pq ${RNASDB_PRED_DIR}/prediction_split_8.pq
+```
+
+
