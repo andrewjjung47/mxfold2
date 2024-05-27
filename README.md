@@ -382,7 +382,92 @@ WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=7 m
 ```
 
 
-Inference: check wandb model artifact from above runs, make sure to use the corresponding one for testing  TODO
+Inference: check wandb model artifact from above runs, make sure to use the corresponding one for testing  
+
+- split 1: `psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v8`
+
+- split 2: `psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v4`
+
+- split 3: `psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v6`
+
+- split 4: `psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v1`
+
+- split 5: `psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v3`
+
+- split 6: `psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v5`
+
+- split 7: `psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v7`
+
+- split 8: `psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v2`
+
+
+```bash
+mamba activate mxfold2-train
+cd /mnt/dg_shared_truenas/for_alice/work/mxfold2
+export SPLIT_ID=1
+export MODEL_VER=8
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v${MODEL_VER} --gpu 0 --bpp wkdir/rna_sdb/split_${SPLIT_ID}/prediction.pq /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/mxfold2_archiveII_split_${SPLIT_ID}.pq
+# https://wandb.ai/psi-lab/rna-sdb-mxfold2-predict/runs/83pe6nlk
+
+
+mamba activate mxfold2-train
+cd /mnt/dg_shared_truenas/for_alice/work/mxfold2
+export SPLIT_ID=2
+export MODEL_VER=4
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v${MODEL_VER} --gpu 0 --bpp wkdir/rna_sdb/split_${SPLIT_ID}/prediction.pq /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/mxfold2_archiveII_split_${SPLIT_ID}.pq
+# https://wandb.ai/psi-lab/rna-sdb-mxfold2-predict/runs/nz6s91g3
+
+
+
+mamba activate mxfold2-train
+cd /mnt/dg_shared_truenas/for_alice/work/mxfold2
+export SPLIT_ID=3
+export MODEL_VER=6
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v${MODEL_VER} --gpu 0 --bpp wkdir/rna_sdb/split_${SPLIT_ID}/prediction.pq /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/mxfold2_archiveII_split_${SPLIT_ID}.pq
+# https://wandb.ai/psi-lab/rna-sdb-mxfold2-predict/runs/l5t5mjfu
+
+
+mamba activate mxfold2-train
+cd /mnt/dg_shared_truenas/for_alice/work/mxfold2
+export SPLIT_ID=4
+export MODEL_VER=1
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v${MODEL_VER} --gpu 0 --bpp wkdir/rna_sdb/split_${SPLIT_ID}/prediction.pq /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/mxfold2_archiveII_split_${SPLIT_ID}.pq
+# https://wandb.ai/psi-lab/rna-sdb-mxfold2-predict/runs/u37i6o75
+
+
+mamba activate mxfold2-train
+cd /mnt/dg_shared_truenas/for_alice/work/mxfold2
+export SPLIT_ID=5
+export MODEL_VER=3
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v${MODEL_VER} --gpu 0 --bpp wkdir/rna_sdb/split_${SPLIT_ID}/prediction.pq /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/mxfold2_archiveII_split_${SPLIT_ID}.pq
+# https://wandb.ai/psi-lab/rna-sdb-mxfold2-predict/runs/ilojskck
+
+
+
+mamba activate mxfold2-train
+cd /mnt/dg_shared_truenas/for_alice/work/mxfold2
+export SPLIT_ID=6
+export MODEL_VER=5
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v${MODEL_VER} --gpu 0 --bpp wkdir/rna_sdb/split_${SPLIT_ID}/prediction.pq /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/mxfold2_archiveII_split_${SPLIT_ID}.pq
+# https://wandb.ai/psi-lab/rna-sdb-mxfold2-predict/runs/5hx55tks
+
+
+mamba activate mxfold2-train
+cd /mnt/dg_shared_truenas/for_alice/work/mxfold2
+export SPLIT_ID=7
+export MODEL_VER=7
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v${MODEL_VER} --gpu 0 --bpp wkdir/rna_sdb/split_${SPLIT_ID}/prediction.pq /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/mxfold2_archiveII_split_${SPLIT_ID}.pq
+# https://wandb.ai/psi-lab/rna-sdb-mxfold2-predict/runs/u2k6fr34
+
+
+mamba activate mxfold2-train
+cd /mnt/dg_shared_truenas/for_alice/work/mxfold2
+export SPLIT_ID=8
+export MODEL_VER=2
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v${MODEL_VER} --gpu 0 --bpp wkdir/rna_sdb/split_${SPLIT_ID}/prediction.pq /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/mxfold2_archiveII_split_${SPLIT_ID}.pq
+# https://wandb.ai/psi-lab/rna-sdb-mxfold2-predict/runs/p63057mw
+
+```
 
 
 
