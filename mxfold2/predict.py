@@ -89,6 +89,11 @@ class Predict:
         logging.info(f"Exporting output df to: {output_bpp}")
         df.to_parquet(output_bpp)
 
+        # upload to wandb
+        art = wandb.Artifact("mxfold2-prediction", type="prediction")
+        art.add_file(output_bpp)
+        wandb.log_artifact(art)
+
 
     def build_model(self, args):
         if args.model == 'Turner':

@@ -288,8 +288,21 @@ Adding wandb: model artifact, inference. Train a model:
 WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param wkdir/debug_6/model.pth --save-config wkdir/debug_6/model.conf --gpu 0 --log-dir wkdir/debug_6/  --epochs 1 --train_max_len 50 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/bpRNA/bprna_for_alice_train.pq
 ```
 
-Check wandb model artifact: `psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v0`
+Check wandb model artifact: `psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v0`. update inference to use wandb artifact. Check predict script:
 
+
+
+```bash
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v0 --gpu 0 --bpp wkdir/debug_6/prediction.pq --max_num 50 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/bpRNA/bprna_for_alice.pq
+```
+
+Inspect predictions: looks good. Update inference to upload predictions to wandb, re-run above:
+
+```bash
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v0 --gpu 0 --bpp wkdir/debug_6/prediction.pq --max_num 50 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/bpRNA/bprna_for_alice.pq
+```
+
+Check wandb model artifact: 
 
 
 
