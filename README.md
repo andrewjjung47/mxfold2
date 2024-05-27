@@ -471,5 +471,23 @@ WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 m
 
 
 
-send results to Andrew, annotate wandb artifact ID (from my project) for reproducibility  TODO
+send results to Andrew, annotate wandb artifact ID (from my project) for reproducibility:
+
+
+- split_1: local: `wkdir/rna_sdb/split_1/prediction.pq`: wandb: `psi-lab/rna-sdb-mxfold2-predict/mxfold2-prediction:v7`
+
+- split_2: local: `wkdir/rna_sdb/split_2/prediction.pq`: wandb: `psi-lab/rna-sdb-mxfold2-predict/mxfold2-prediction:v4`
+
+- split_3: local: `wkdir/rna_sdb/split_3/prediction.pq`: wandb: `psi-lab/rna-sdb-mxfold2-predict/mxfold2-prediction:v1`
+
+- split_4: local: `wkdir/rna_sdb/split_4/prediction.pq`: wandb: `psi-lab/rna-sdb-mxfold2-predict/mxfold2-prediction:v2`
+
+- split_5: local: `wkdir/rna_sdb/split_5/prediction.pq`: wandb: `psi-lab/rna-sdb-mxfold2-predict/mxfold2-prediction:v6`
+
+- split_6: local: `wkdir/rna_sdb/split_6/prediction.pq`: wandb: `psi-lab/rna-sdb-mxfold2-predict/mxfold2-prediction:v5`
+
+- split_7: local: `wkdir/rna_sdb/split_7/prediction.pq`: wandb: `psi-lab/rna-sdb-mxfold2-predict/mxfold2-prediction:v3`
+
+- split_8: local: `wkdir/rna_sdb/split_8/prediction.pq`: wandb: `psi-lab/rna-sdb-mxfold2-predict/mxfold2-prediction:v8`
+
 
