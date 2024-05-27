@@ -15,6 +15,8 @@ from .dataset import RnaSdbDataset  # BPseqDataset, FastaDataset
 from .fold.mix import MixedFold
 from .fold.rnafold import RNAFold
 from .fold.zuker import ZukerFold
+import glob
+import wandb
 
 
 class Predict:
@@ -145,6 +147,13 @@ class Predict:
 
 
     def run(self, args, conf=None):
+        wandb.init(
+            entity="psi-lab",  # TODO hard-coded to Alice's account
+            project="rna-sdb-mxfold2-predict",  # TODO hard-coded
+            # Track hyperparameters and run metadata
+            config=args,
+        )
+
         # test_dataset = FastaDataset(args.input)
         # if len(test_dataset) == 0:
         #     test_dataset = BPseqDataset(args.input)
@@ -162,7 +171,14 @@ class Predict:
 
         self.model, _ = self.build_model(args)
         if args.param != '':
-            param = Path(args.param)
+            
+            model_artifact = wandb.run.use_artifact(args.param)
+            model_artifact = model_artifact.download()
+            for file_name in glob.glob(model_artifact + '/*'):
+                if file_name.endswith('.pt'):
+                    model_ckpt = file_name
+            logging.info(f"Downloaded wandb artifact: {args.param}, found model checkpoint: {model_ckpt}")
+            param = Path(model_ckpt)
             if not param.exists() and conf is not None:
                 param = Path(conf).parent / param
             p = torch.load(param, map_location='cpu')
@@ -196,8 +212,10 @@ class Predict:
                             help='random seed (default: 0)')
         subparser.add_argument('--gpu', type=int, default=-1, 
                             help='use GPU with the specified ID (default: -1 = CPU)')
+        # subparser.add_argument('--param', type=str, default='',
+        #                     help='file name of trained parameters') 
         subparser.add_argument('--param', type=str, default='',
-                            help='file name of trained parameters') 
+                            help='wandb artifact of the checkpoint file') 
         # subparser.add_argument('--use-constraint', default=False, action='store_true')   # Alice: I want to prevent the target being passed in
         # subparser.add_argument('--result', type=str, default=None,
         #                     help='output the prediction accuracy if reference structures are given')

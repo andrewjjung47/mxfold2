@@ -279,7 +279,29 @@ train on full bprna without length limit:
 
 
 ```bash
-WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param wkdir/debug_5/model.pth --save-config wkdir/debug_5/model.conf --gpu 0 --log-dir wkdir/debug_5/  --epochs 10  /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/bpRNA/xxx.pq
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param wkdir/debug_5/model.pth --save-config wkdir/debug_5/model.conf --gpu 0 --log-dir wkdir/debug_5/  --epochs 10  /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/bpRNA/bprna_for_alice_train.pq
+```
+
+Adding wandb: model artifact, inference. Train a model:
+
+```bash
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param wkdir/debug_6/model.pth --save-config wkdir/debug_6/model.conf --gpu 0 --log-dir wkdir/debug_6/  --epochs 1 --train_max_len 50 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/bpRNA/bprna_for_alice_train.pq
+```
+
+Check wandb model artifact: `psi-lab/rna-sdb-mxfold2-train/mxfold2-model:v0`
+
+
+
+
+
+From Andrew:
+
+```
+I uploaded the datasets to the drive I've been using: /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb
+
+For the training, you can use mxfold2_rnasdb_split_*_train.pq. They should all have 107,840 samples, which is somewhat equivalent to 10 epoch over bpRNA. As we discussed, you only need to run one epoch over the entire dataset.
+
+For the testing, you can use mxfold2_archiveII_split_*.pq but please make sure to use the corresponding split as the dataset split the model was trained on (i.e. keep split_1 training and testing together)
 ```
 
 
