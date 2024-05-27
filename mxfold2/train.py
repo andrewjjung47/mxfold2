@@ -112,6 +112,10 @@ class Train:
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict()
         }, filename)
+        # upload to wandb
+        art = wandb.Artifact("mxfold2-model", type="model")
+        art.add_file(filename)
+        wandb.log_artifact(art)
 
 
     def resume_checkpoint(self, filename):
