@@ -329,12 +329,56 @@ mamba activate mxfold2-train
 cd /mnt/dg_shared_truenas/for_alice/work/mxfold2
 export SPLIT_ID=1
 WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param wkdir/rna_sdb/split_${SPLIT_ID}/model.pth --save-config wkdir/rna_sdb/split_${SPLIT_ID}/model.conf --gpu 0 --log-dir wkdir/rna_sdb/split_${SPLIT_ID}/  --epochs 1  /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/mxfold2_rnasdb_split_${SPLIT_ID}_train.pq
-
+# https://wandb.ai/psi-lab/rna-sdb-mxfold2-train/runs/sbs7l1z8
 
 mamba activate mxfold2-train
 cd /mnt/dg_shared_truenas/for_alice/work/mxfold2
 export SPLIT_ID=2
 WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=1 mxfold2 train --model MixC --param wkdir/rna_sdb/split_${SPLIT_ID}/model.pth --save-config wkdir/rna_sdb/split_${SPLIT_ID}/model.conf --gpu 0 --log-dir wkdir/rna_sdb/split_${SPLIT_ID}/  --epochs 1  /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/mxfold2_rnasdb_split_${SPLIT_ID}_train.pq
+# https://wandb.ai/psi-lab/rna-sdb-mxfold2-train/runs/dflbdnoc
+
+
+mamba activate mxfold2-train
+cd /mnt/dg_shared_truenas/for_alice/work/mxfold2
+export SPLIT_ID=3
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=2 mxfold2 train --model MixC --param wkdir/rna_sdb/split_${SPLIT_ID}/model.pth --save-config wkdir/rna_sdb/split_${SPLIT_ID}/model.conf --gpu 0 --log-dir wkdir/rna_sdb/split_${SPLIT_ID}/  --epochs 1  /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/mxfold2_rnasdb_split_${SPLIT_ID}_train.pq
+# https://wandb.ai/psi-lab/rna-sdb-mxfold2-train/runs/mv7a5oam
+
+mamba activate mxfold2-train
+cd /mnt/dg_shared_truenas/for_alice/work/mxfold2
+export SPLIT_ID=4
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=3 mxfold2 train --model MixC --param wkdir/rna_sdb/split_${SPLIT_ID}/model.pth --save-config wkdir/rna_sdb/split_${SPLIT_ID}/model.conf --gpu 0 --log-dir wkdir/rna_sdb/split_${SPLIT_ID}/  --epochs 1  /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/mxfold2_rnasdb_split_${SPLIT_ID}_train.pq
+# https://wandb.ai/psi-lab/rna-sdb-mxfold2-train/runs/xpufl5zc
+
+
+mamba activate mxfold2-train
+cd /mnt/dg_shared_truenas/for_alice/work/mxfold2
+export SPLIT_ID=5
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=4 mxfold2 train --model MixC --param wkdir/rna_sdb/split_${SPLIT_ID}/model.pth --save-config wkdir/rna_sdb/split_${SPLIT_ID}/model.conf --gpu 0 --log-dir wkdir/rna_sdb/split_${SPLIT_ID}/  --epochs 1  /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/mxfold2_rnasdb_split_${SPLIT_ID}_train.pq
+# https://wandb.ai/psi-lab/rna-sdb-mxfold2-train/runs/42vag06b
+
+
+
+mamba activate mxfold2-train
+cd /mnt/dg_shared_truenas/for_alice/work/mxfold2
+export SPLIT_ID=6
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=5 mxfold2 train --model MixC --param wkdir/rna_sdb/split_${SPLIT_ID}/model.pth --save-config wkdir/rna_sdb/split_${SPLIT_ID}/model.conf --gpu 0 --log-dir wkdir/rna_sdb/split_${SPLIT_ID}/  --epochs 1  /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/mxfold2_rnasdb_split_${SPLIT_ID}_train.pq
+# https://wandb.ai/psi-lab/rna-sdb-mxfold2-train/runs/03l4tvwk
+
+
+
+mamba activate mxfold2-train
+cd /mnt/dg_shared_truenas/for_alice/work/mxfold2
+export SPLIT_ID=7
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=6 mxfold2 train --model MixC --param wkdir/rna_sdb/split_${SPLIT_ID}/model.pth --save-config wkdir/rna_sdb/split_${SPLIT_ID}/model.conf --gpu 0 --log-dir wkdir/rna_sdb/split_${SPLIT_ID}/  --epochs 1  /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/mxfold2_rnasdb_split_${SPLIT_ID}_train.pq
+# https://wandb.ai/psi-lab/rna-sdb-mxfold2-train/runs/h7q1gklm
+
+mamba activate mxfold2-train
+cd /mnt/dg_shared_truenas/for_alice/work/mxfold2
+export SPLIT_ID=8
+WANDB_API_KEY=fc31024445b1bd60765be0295fb8f4a8ca0b389e  CUDA_VISIBLE_DEVICES=7 mxfold2 train --model MixC --param wkdir/rna_sdb/split_${SPLIT_ID}/model.pth --save-config wkdir/rna_sdb/split_${SPLIT_ID}/model.conf --gpu 0 --log-dir wkdir/rna_sdb/split_${SPLIT_ID}/  --epochs 1  /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/mxfold2_rnasdb_split_${SPLIT_ID}_train.pq
+# https://wandb.ai/psi-lab/rna-sdb-mxfold2-train/runs/06575ewa
+
 ```
 
 
