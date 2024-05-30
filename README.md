@@ -508,3 +508,66 @@ cp wkdir/rna_sdb/split_8/prediction.pq ${RNASDB_PRED_DIR}/prediction_split_8.pq
 ```
 
 
+
+### Instruction on training and inference
+
+
+#### Installation
+
+
+```bash
+mamba create -n mxfold2-train python=3.9 ipython
+
+mamba activate mxfold2-train
+
+mamba install numpy pandas pyarrow pybind11 pytorch==1.13.1 torchvision pytorch-cuda=11.7 tqdm wandb wheel -c pytorch -c nvidia
+
+pip install .
+# for dev: pip install --editable .
+```
+
+Once installed, command `mxfold2` can be evoked from anywhere.
+
+:exclamation:  Make sure to install `pyarrow` not `fastparquet`, so that we can load Andrew's `pq` dataset. 
+
+
+:exclamation: Note that if working off GPU server and using `truenas` the dev-mode (`pip install --editable .`) doesn't seem to work. Instead do `pip install .`.
+
+
+#### Dataset
+
+Prepare your dataset as dataframe and save in `parquet` format. The following 3 columns are required:
+
+- seq_id
+
+- seq
+
+- pair_indices
+
+
+#### Training
+
+
+```bash
+CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param {local-file-path-to-export-model-params} --save-config {local-file-path-to-export-model-config} --gpu 0 --log-dir {local-dir-to-export-log-and-checkpoint}  --epochs {num-epoch}  {local-file-path-to-dataset.pq}
+```
+
+
+@andrew: I believe you can also omit `--param` and `--save-config` since I've modified the script to upload the pytorch checkpoint that contains everything.
+
+@andrew: the script upload model as wandb artifact, please make a note of its ID. It is needed in inference.
+
+
+@andrew: `train.py` is hard-coded to log to my wandb, you'll need to change that.
+
+
+#### Inference
+
+
+```bash
+CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param {wandb-model-id} --gpu 0 --bpp {local-file-path-to-export-prediction.pq} {local-file-path-to-dataset.pq}
+```
+
+@andrew: prediction parquet file is also uploaded as wandb artifact.
+
+@andrew: `predict.py` is hard-coded to log to my wandb, you'll need to change that.
