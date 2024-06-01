@@ -48,9 +48,10 @@ class Predict:
                 elapsed_time = time.time() - start
                 for header, seq, ref, sc, pred, bp, pf, bpp in zip(headers, seqs, refs, scs, preds, bps, pfs, bpps):
                     if output_bpseq is None:
-                        print('>'+header)
-                        print(seq)
-                        print(pred, f'({sc:.1f})')
+                        pass
+                        # print('>'+header)
+                        # print(seq)
+                        # print(pred, f'({sc:.1f})')
                     elif output_bpseq == "stdout":
                         print(f'# {header} (s={sc:.1f}, {elapsed_time:.5f}s)')
                         for i in range(1, len(bp)):
@@ -153,8 +154,10 @@ class Predict:
 
     def run(self, args, conf=None):
         wandb.init(
-            entity="psi-lab",  # TODO hard-coded to Alice's account
-            project="rna-sdb-mxfold2-predict",  # TODO hard-coded
+            entity=args.entity,
+            project=args.project,
+            group=args.group,
+            job_type=args.job_type,
             # Track hyperparameters and run metadata
             config=args,
         )
@@ -205,8 +208,6 @@ class Predict:
     def add_args(cls, parser):
         subparser = parser.add_parser('predict', help='predict')
         # input
-        # subparser.add_argument('input', type=str,
-        #                     help='FASTA-formatted file or list of BPseq files')
         subparser.add_argument('input', type=str,
                             help='Dataset. Pq file. Required cols: seq_id, seq, db_structure')
         # added to prevent training on super long sequences
@@ -217,8 +218,6 @@ class Predict:
                             help='random seed (default: 0)')
         subparser.add_argument('--gpu', type=int, default=-1, 
                             help='use GPU with the specified ID (default: -1 = CPU)')
-        # subparser.add_argument('--param', type=str, default='',
-        #                     help='file name of trained parameters') 
         subparser.add_argument('--param', type=str, default='',
                             help='wandb artifact of the checkpoint file') 
         # subparser.add_argument('--use-constraint', default=False, action='store_true')   # Alice: I want to prevent the target being passed in
@@ -228,6 +227,13 @@ class Predict:
         #                     help='output the prediction with BPSEQ format to the specified directory')
         subparser.add_argument('--bpp', type=str, default=None,
                             help='output the base-pairing probability matrix to the specified directory')
+
+        # Wandb settings
+        subparser.add_argument('--entity', type=str, help='Wandb entity')
+        subparser.add_argument('--project', type=str, help='Wandb project')
+        subparser.add_argument('--group', type=str, help='Wandb group')
+        subparser.add_argument('--job_type', type=str, help='Wandb job_type')
+        subparser.add_argument('--split_name', type=str, help='Training split') #
 
         gparser = subparser.add_argument_group("Network setting")
         gparser.add_argument('--model', choices=('Turner', 'Zuker', 'ZukerS', 'ZukerL', 'ZukerC', 'Mix', 'MixC'), default='Turner', 

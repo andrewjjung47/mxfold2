@@ -113,7 +113,7 @@ class Train:
             'optimizer_state_dict': self.optimizer.state_dict()
         }, filename)
         # upload to wandb
-        art = wandb.Artifact("mxfold2-model", type="model")
+        art = wandb.Artifact(name=f"model-{wandb.run.id}", type="model")
         art.add_file(filename)
         wandb.log_artifact(art)
 
@@ -225,8 +225,10 @@ class Train:
 
     def run(self, args, conf=None):
         wandb.init(
-            entity="psi-lab",  # TODO hard-coded to Alice's account
-            project="rna-sdb-mxfold2-train",  # TODO hard-coded
+            entity=args.entity,
+            project=args.project,
+            group=args.group,
+            job_type=args.job_type,
             # Track hyperparameters and run metadata
             config=args,
         )
@@ -310,6 +312,13 @@ class Train:
                             help='output file name of trained parameters')
         subparser.add_argument('--init-param', type=str, default='',
                             help='the file name of the initial parameters')
+
+        # Wandb settings
+        subparser.add_argument('--entity', type=str, help='Wandb entity')
+        subparser.add_argument('--project', type=str, help='Wandb project')
+        subparser.add_argument('--group', type=str, help='Wandb group')
+        subparser.add_argument('--job_type', type=str, help='Wandb job_type')
+        subparser.add_argument('--split_name', type=str, help='Training split') # for easy Wandb tracking
 
         gparser = subparser.add_argument_group("Training environment")
         subparser.add_argument('--epochs', type=int, default=10, metavar='N',
