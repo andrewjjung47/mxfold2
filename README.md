@@ -65,57 +65,26 @@ A web server is working at http://www.dna.bio.keio.ac.jp/mxfold2/.
 
 
 
-## Added by Alice
+## Use RNA-SDB dataset
 
 ### Setup
 
 
 ```bash
 mamba create -n mxfold2-train python=3.9 ipython
-
 mamba activate mxfold2-train
 
-mamba install numpy pandas pyarrow pybind11 pytorch==1.13.1 torchvision pytorch-cuda=11.7 tqdm wandb wheel -c pytorch -c nvidia
-# mamba install numpy pandas fastparquet pybind11 pytorch==1.13.1 torchvision pytorch-cuda=11.7 tqdm wandb wheel -c pytorch -c nvidia
-# mamba install numpy pandas fastparquet pybind11 pytorch==1.13.1 torchvision tqdm wheel -c pytorch   # no GPU
-
+mamba install numpy pandas pyarrow huggingface_hub pybind11 pytorch==1.13.1 torchvision pytorch-cuda=11.7 tqdm wandb wheel -c pytorch -c nvidia
 pip install .
-# for dev: pip install --editable .
 ```
 
-:exclamation:  Make sure to install `pyarrow` not `fastparquet`, so that we can load Andrew's `pq` dataset. 
-
-
-:exclamation: Note that if working off GPU server and using `truenas` the dev-mode (`pip install --editable .`) doesn't seem to work. Instead do `pip install .`.
+To use RNA-SDB dataset hosted on Huggingface-Hub, login your huggingface account:
 
 ```bash
-Traceback (most recent call last):
-  File "/home/alice/conda/envs/mxfold2-train/bin/mxfold2", line 5, in <module>
-    from mxfold2.__main__ import main
-  File "/mnt/dg_shared_truenas/for_alice/work/mxfold2/mxfold2/__main__.py", line 6, in <module>
-    from .predict import Predict
-  File "/mnt/dg_shared_truenas/for_alice/work/mxfold2/mxfold2/predict.py", line 14, in <module>
-    from .fold.mix import MixedFold
-  File "/mnt/dg_shared_truenas/for_alice/work/mxfold2/mxfold2/fold/mix.py", line 2, in <module>
-    from .. import interface
-ImportError: /mnt/dg_shared_truenas/for_alice/work/mxfold2/mxfold2/interface.cpython-39-x86_64-linux-gnu.so: failed to map segment from shared object
+huggingface-cli login 
 ```
 
 
-
-
-
-<!-- test list of files:
-
-```bash
-mkdir wkdir
-ls -a1 ../rna_sdb/datasets/bpRNA/bprna/TS0/bpRNA_RFAM_15* | xargs realpath > wkdir/bprna_tr0_small.lst
-
-mkdir wkdir/log
-mxfold2 train --model MixC --param wkdir/log/model.pth --save-config wkdir/log/model.conf \
---log-dir wkdir/log/  \
- --epochs 2  wkdir/bprna_tr0_small.lst
-``` -->
 
 
 
@@ -123,13 +92,23 @@ mxfold2 train --model MixC --param wkdir/log/model.pth --save-config wkdir/log/m
 
 ### Training
 
-- updated code to only save the last checkpoint, it'll be named `checkpoint.pt`
+We've updated training script to use new dataset wrapper `RnaSdbDataset` to load parquet format (with cols: `seq_id`, `seq`, `db_structure`),
+consistent with RNA-SDB format.
 
-- added new dataset wrapper `RnaSdbDataset` to load parquet format (with cols: `seq_id`, `seq`, `db_structure`),
-replaced the default dataset with this one
+> [!CAUTION]
+> Replace `DATASET` with the actual rna-sdb dataset (right now it is a toy dataset in Alice's HF repo).
+
+To train model on RNA-SDB dataset hosted on huggingface-hub:
+
+```bash
+export WDIR=wkdir/run_test/
+export DATASET="AliceGao/test1/split_1_cache_test.1000.pq"
+mkdir -p $WDIR
+CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param $WDIR/model.pth --save-config $WDIR/model.conf --gpu 0 --log-dir $WDIR --epochs 10 --train_max_len 1000 $DATASET
+```
 
 
-Training model on pq dataset (GPU):
+To train model on pq dataset (GPU):
 
 
 ```bash

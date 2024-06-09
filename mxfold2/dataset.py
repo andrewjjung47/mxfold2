@@ -2,11 +2,13 @@ from itertools import groupby
 from torch.utils.data import Dataset
 import torch
 import re
+import os
 import math
 import logging
 import pandas as pd
 from tqdm import tqdm
 from typing import Tuple
+from huggingface_hub import hf_hub_download
 
 
 class FastaDataset(Dataset):
@@ -37,55 +39,9 @@ class FastaDataset(Dataset):
             yield (headerStr, seq, torch.tensor([]))
 
 
-# class RnaSdbDataset(Dataset):
-
-#     def __init__(self, pq_file_path: str,  # path to pq file
-#                  max_len: int = None):
-#         # create dataset in format expected by mxfold
-#         # each example is tuple of 3 elements:
-#         # - [str] name of the "file" - we'll use `seq_id`
-#         # - [str] sequence
-#         # - [list] pair_indices
-#         logging.info(f"Converting pq dataset: {pq_file_path}...")
-#         df = pd.read_parquet(pq_file_path)
-#         self.data = []
-#         for _, row in tqdm(df.iterrows(), total=len(df)):
-#             seq_id = row['seq_id']
-#             seq = row['seq']
-#             if max_len is not None and len(seq) > max_len:
-#                 continue
-#             db_str = row['db_structure']
-#             target = self.db_to_target(db_str)
-#             self.data.append((seq_id, seq, target))
-#         logging.info(f"Converted {len(self.data)} examples (out of {len(df)}).")
-
-#     def __len__(self):
-#         return len(self.data)
-
-#     def __getitem__(self, idx):
-#         return self.data[idx]
-
-#     @staticmethod
-#     def db_to_target(db_str: str) -> list:
-#         pairs = db2pairs(db_str)
-#         # mxfold2 expect the target to be the pairing indices (i.e. 3rd col of BPSEQ format),
-#         # with a leading 0 (i.e. list length is len(seq)+1)
-#         # start with a list of 0's, 0 represent no-pairing
-#         target = [0] * len(db_str)
-#         # go through the pairs, set their corresponding entry to the pairing index
-#         # note that we need 1-based index!!!
-#         for i, j in pairs:
-#             target[i] = j + 1  # 1-based
-#         # add the leading 0
-#         target = [0] + target
-#         # check len
-#         assert len(target) == len(db_str) + 1
-#         return target
-
-
 class RnaSdbDataset(Dataset):
 
-    def __init__(self, pq_file_path: str,  # path to pq file
+    def __init__(self, pq_file_path: str,  # path to pq file, or HF dataset in the format of "{repo_id}/{file_name}"
                  max_len: int = None):
         # create dataset in format expected by mxfold
         # each example is tuple of 3 elements:
@@ -93,7 +49,17 @@ class RnaSdbDataset(Dataset):
         # - [str] sequence
         # - [list] pair_indices
         logging.info(f"Converting pq dataset: {pq_file_path}...")
-        df = pd.read_parquet(pq_file_path)
+
+        if os.path.isfile(pq_file_path):
+            df = pd.read_parquet(pq_file_path)
+        else:
+            logging.info(f"Inferring repo and file for huggingface dataset: {pq_file_path}")
+            hf_user, hf_repo, hf_file = pq_file_path.split('/')
+            logging.info(f"Repo-id: {hf_user}/{hf_repo}, file: {hf_file}")
+            df = pd.read_parquet(
+                hf_hub_download(repo_id=f"{hf_user}/{hf_repo}", filename=hf_file, repo_type="dataset")
+            )
+        
         self.data = []
         for _, row in tqdm(df.iterrows(), total=len(df)):
             seq_id = row['seq_id']
