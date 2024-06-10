@@ -41,21 +41,14 @@ class Train:
         start = time.time()
         with tqdm(total=n_dataset, disable=self.disable_progress_bar) as pbar:
             for fnames, seqs, pairs in self.train_loader:
-                # if self.verbose:
-                #     print()
-                #     print("Step: {}, {}".format(self.step, fnames))
                 self.step += 1
                 n_batch = len(seqs)
                 self.optimizer.zero_grad()
 
-                start_time_loss = time.time()
                 loss = torch.sum(self.loss_fn(seqs, pairs, fname=fnames))
 
                 wandb.log({"train/loss": loss.item(), 
                            "epoch": epoch,
-                           # I suspect some examples are super slow, so I'm logging len and time
-                           "train/seq_len": len(seqs[0]),  # FIXME assume batch size 1!
-                           "train/loss_time": time.time() - start_time_loss,
                            }, 
                         step=self.step)
 

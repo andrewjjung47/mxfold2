@@ -49,9 +49,6 @@ class Predict:
                 for header, seq, ref, sc, pred, bp, pf, bpp in zip(headers, seqs, refs, scs, preds, bps, pfs, bpps):
                     if output_bpseq is None:
                         pass
-                        # print('>'+header)
-                        # print(seq)
-                        # print(pred, f'({sc:.1f})')
                     elif output_bpseq == "stdout":
                         print(f'# {header} (s={sc:.1f}, {elapsed_time:.5f}s)')
                         for i in range(1, len(bp)):
@@ -69,13 +66,11 @@ class Predict:
                         x = [header, len(seq), elapsed_time, sc.item()] + list(x) + list(accuracy(*x))
                         res_fn.write(', '.join([str(v) for v in x]) + "\n")
                     if output_bpp is not None:
-                        # Alice: I've updated this to export both bpseq-like result and the matrix
+                        # updated to export both bpseq-like result and the matrix
                         # bpseq-like list, copied from above code
                         bpseq_lst = []
                         for i in range(1, len(bp)):
-                            # bpseq_lst.append((i, seq[i-1], bp[i]))
                             bpseq_lst.append((i, bp[i]))
-                            # print(f'{i}\t{seq[i-1]}\t{bp[i]}')
                         # matrix (note that size is len(seq)+1!!!)
                         bpp = np.triu(bpp)
                         bpp = bpp + bpp.T
@@ -84,7 +79,6 @@ class Predict:
                                    'bp_matrix': bpp.tolist(),   # parquet can't do 2D arrays, convert to list
                                    })
 
-        # TODO export df to pq format
         df = pd.DataFrame(df)
         os.makedirs(os.path.dirname(output_bpp), exist_ok=True)
         logging.info(f"Exporting output df to: {output_bpp}")
@@ -162,9 +156,6 @@ class Predict:
             config=args,
         )
 
-        # test_dataset = FastaDataset(args.input)
-        # if len(test_dataset) == 0:
-        #     test_dataset = BPseqDataset(args.input)
         test_dataset = RnaSdbDataset(args.input)
 
         if args.max_num is not None:
@@ -202,10 +193,10 @@ class Predict:
         if args.gpu >= 0:
             self.model.to(torch.device("cuda", args.gpu))
 
-        self.predict(output_bpseq=None,  # args.bpseq,   # Alice: not supporting this after my hacky changes
+        self.predict(output_bpseq=None,    #  not supporting this
                      output_bpp=args.bpp,  
-                     result=None,  # args.result,  # Alice: not supporting this after my hacky changes
-                     use_constraint=None,  # args.use_constraint,   # Alice: I want to prevent the target being passed in
+                     result=None,  #  supporting this 
+                     use_constraint=None,     # to prevent the target being passed in
                     )
 
 
@@ -225,11 +216,6 @@ class Predict:
                             help='use GPU with the specified ID (default: -1 = CPU)')
         subparser.add_argument('--param', type=str, default='',
                             help='file path or wandb artifact of the checkpoint file') 
-        # subparser.add_argument('--use-constraint', default=False, action='store_true')   # Alice: I want to prevent the target being passed in
-        # subparser.add_argument('--result', type=str, default=None,
-        #                     help='output the prediction accuracy if reference structures are given')
-        # subparser.add_argument('--bpseq', type=str, default=None,
-        #                     help='output the prediction with BPSEQ format to the specified directory')
         subparser.add_argument('--bpp', type=str, default=None,
                             help='output the base-pairing probability matrix to the specified directory')
 

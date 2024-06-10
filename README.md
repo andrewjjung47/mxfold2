@@ -148,3 +148,4 @@ The above inference script writes to a dataframe (in parquet format) with 3 colu
 
     - `bp_matrix`: 2D matrix computed by MXFOLD2, with shape `(len(seq)+1) x (len(seq)+1)`
 
+The parquet dataframe is also uploaded to wandb as artifact (with id in the format of `$ENTITY/$PROJECT/mxfold2-prediction:v*`).
