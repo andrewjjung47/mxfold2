@@ -2,7 +2,7 @@ import os
 import random
 import time
 from pathlib import Path
-
+import logging
 import numpy as np
 import torch
 import torch.nn as nn
@@ -11,7 +11,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from .dataset import BPseqDataset
+from .dataset import RnaSdbDataset # BPseqDataset
 from .fold.mix import MixedFold
 from .fold.rnafold import RNAFold
 from .fold.zuker import ZukerFold
@@ -21,6 +21,8 @@ try:
     from torch.utils.tensorboard import SummaryWriter
 except ImportError:
     pass
+
+import wandb
 
 
 class Train:
@@ -39,13 +41,17 @@ class Train:
         start = time.time()
         with tqdm(total=n_dataset, disable=self.disable_progress_bar) as pbar:
             for fnames, seqs, pairs in self.train_loader:
-                if self.verbose:
-                    print()
-                    print("Step: {}, {}".format(self.step, fnames))
-                    self.step += 1
+                self.step += 1
                 n_batch = len(seqs)
                 self.optimizer.zero_grad()
+
                 loss = torch.sum(self.loss_fn(seqs, pairs, fname=fnames))
+
+                wandb.log({"train/loss": loss.item(), 
+                           "epoch": epoch,
+                           }, 
+                        step=self.step)
+
                 loss_total += loss.item()
                 num += n_batch
                 if loss.item() > 0.:
@@ -92,12 +98,17 @@ class Train:
 
 
     def save_checkpoint(self, outdir, epoch):
-        filename = os.path.join(outdir, 'epoch-{}'.format(epoch))
+        # filename = os.path.join(outdir, 'epoch-{}'.format(epoch))
+        filename = os.path.join(outdir, 'checkpoint.pt')
         torch.save({
             'epoch': epoch,
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict()
         }, filename)
+        # upload to wandb
+        art = wandb.Artifact(name=f"model-{wandb.run.id}", type="model")
+        art.add_file(filename)
+        wandb.log_artifact(art)
 
 
     def resume_checkpoint(self, filename):
@@ -206,16 +217,27 @@ class Train:
 
 
     def run(self, args, conf=None):
+        wandb.init(
+            entity=args.entity,
+            project=args.project,
+            group=args.group,
+            job_type=args.job_type,
+            # Track hyperparameters and run metadata
+            config=args,
+        )
+
         self.disable_progress_bar = args.disable_progress_bar
         self.verbose = args.verbose
         self.writer = None
         if args.log_dir is not None and 'SummaryWriter' in globals():
             self.writer = SummaryWriter(log_dir=args.log_dir)
 
-        train_dataset = BPseqDataset(args.input)
+        if args.train_max_len is not None:
+            train_dataset = RnaSdbDataset(args.input, max_len=args.train_max_len)
         self.train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True)
         if args.test_input is not None:
-            test_dataset = BPseqDataset(args.test_input)
+            if args.train_max_len is not None:
+                test_dataset = RnaSdbDataset(args.test_input, max_len=args.train_max_len)
             self.test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
         if args.seed >= 0:
@@ -249,8 +271,11 @@ class Train:
             self.train(epoch)
             if self.test_loader is not None:
                 self.test(epoch)
-            if args.log_dir is not None:
-                self.save_checkpoint(args.log_dir, epoch)
+
+        # only saving the last checkpoint
+        if args.log_dir is not None:
+            os.makedirs(args.log_dir, exist_ok=True)
+            self.save_checkpoint(args.log_dir, epoch)
 
         if args.param is not None:
             torch.save(self.model.state_dict(), args.param)
@@ -265,9 +290,13 @@ class Train:
         subparser = parser.add_parser('train', help='training')
         # input
         subparser.add_argument('input', type=str,
-                            help='Training data of the list of BPSEQ-formatted files')
+                            help='Training data. Pq file (file path, or hugging-face dataset in the format of "repo_id/file_name"). Required cols: seq_id, seq, db_structure')
         subparser.add_argument('--test-input', type=str,
-                            help='Test data of the list of BPSEQ-formatted files')
+                            help='Test data. Pq file. Required cols: seq_id, seq, db_structure')
+        # added to prevent training on super long sequences
+        subparser.add_argument('--train_max_len', type=int, default=1000,
+                            help='Max seq length to train on.')
+
         subparser.add_argument('--gpu', type=int, default=-1, 
                             help='use GPU with the specified ID (default: -1 = CPU)')
         subparser.add_argument('--seed', type=int, default=0, metavar='S',
@@ -276,6 +305,13 @@ class Train:
                             help='output file name of trained parameters')
         subparser.add_argument('--init-param', type=str, default='',
                             help='the file name of the initial parameters')
+
+        # Wandb settings
+        subparser.add_argument('--entity', type=str, help='Wandb entity')
+        subparser.add_argument('--project', type=str, help='Wandb project')
+        subparser.add_argument('--group', type=str, help='Wandb group')
+        subparser.add_argument('--job_type', type=str, help='Wandb job_type')
+        subparser.add_argument('--split_name', type=str, help='Training split') # for easy Wandb tracking
 
         gparser = subparser.add_argument_group("Training environment")
         subparser.add_argument('--epochs', type=int, default=10, metavar='N',

@@ -2,18 +2,21 @@ import os
 import random
 import time
 from pathlib import Path
-
+import pandas as pd
+import logging
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import numpy as np
-
+from tqdm import tqdm
 from .compbpseq import accuracy, compare_bpseq
-from .dataset import BPseqDataset, FastaDataset
+from .dataset import RnaSdbDataset  # BPseqDataset, FastaDataset
 from .fold.mix import MixedFold
 from .fold.rnafold import RNAFold
 from .fold.zuker import ZukerFold
+import glob
+import wandb
 
 
 class Predict:
@@ -24,8 +27,12 @@ class Predict:
     def predict(self, output_bpseq=None, output_bpp=None, result=None, use_constraint=False):
         res_fn = open(result, 'w') if result is not None else None
         self.model.eval()
+
+        # df with col: seq, bpseq, bp_matrix
+        df = []
+
         with torch.no_grad():
-            for headers, seqs, refs in self.test_loader:
+            for headers, seqs, refs in tqdm(self.test_loader, total=len(self.test_loader)):
                 start = time.time()
                 if output_bpp is None:
                     if use_constraint:
@@ -41,9 +48,7 @@ class Predict:
                 elapsed_time = time.time() - start
                 for header, seq, ref, sc, pred, bp, pf, bpp in zip(headers, seqs, refs, scs, preds, bps, pfs, bpps):
                     if output_bpseq is None:
-                        print('>'+header)
-                        print(seq)
-                        print(pred, f'({sc:.1f})')
+                        pass
                     elif output_bpseq == "stdout":
                         print(f'# {header} (s={sc:.1f}, {elapsed_time:.5f}s)')
                         for i in range(1, len(bp)):
@@ -61,12 +66,28 @@ class Predict:
                         x = [header, len(seq), elapsed_time, sc.item()] + list(x) + list(accuracy(*x))
                         res_fn.write(', '.join([str(v) for v in x]) + "\n")
                     if output_bpp is not None:
+                        # updated to export both bpseq-like result and the matrix
+                        # bpseq-like list, copied from above code
+                        bpseq_lst = []
+                        for i in range(1, len(bp)):
+                            bpseq_lst.append((i, bp[i]))
+                        # matrix (note that size is len(seq)+1!!!)
                         bpp = np.triu(bpp)
                         bpp = bpp + bpp.T
-                        fn = os.path.basename(header)
-                        fn = os.path.splitext(fn)[0] 
-                        fn = os.path.join(output_bpp, fn+".bpp")
-                        np.savetxt(fn, bpp, fmt='%.5f')
+                        df.append({'seq': seq, 
+                                   'bpseq': bpseq_lst,
+                                   'bp_matrix': bpp.tolist(),   # parquet can't do 2D arrays, convert to list
+                                   })
+
+        df = pd.DataFrame(df)
+        os.makedirs(os.path.dirname(output_bpp), exist_ok=True)
+        logging.info(f"Exporting output df to: {output_bpp}")
+        df.to_parquet(output_bpp)
+
+        # upload to wandb
+        art = wandb.Artifact("mxfold2-prediction", type="prediction")
+        art.add_file(output_bpp)
+        wandb.log_artifact(art)
 
 
     def build_model(self, args):
@@ -126,9 +147,21 @@ class Predict:
 
 
     def run(self, args, conf=None):
-        test_dataset = FastaDataset(args.input)
-        if len(test_dataset) == 0:
-            test_dataset = BPseqDataset(args.input)
+        wandb.init(
+            entity=args.entity,
+            project=args.project,
+            group=args.group,
+            job_type=args.job_type,
+            # Track hyperparameters and run metadata
+            config=args,
+        )
+
+        test_dataset = RnaSdbDataset(args.input)
+
+        if args.max_num is not None:
+            logging.info(f"Subsetting dataset to max_num={args.max_num}.")
+            test_dataset = torch.utils.data.Subset(test_dataset, range(args.max_num))
+
         self.test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
         if args.seed >= 0:
@@ -137,7 +170,19 @@ class Predict:
 
         self.model, _ = self.build_model(args)
         if args.param != '':
-            param = Path(args.param)
+            
+            if os.path.isfile(args.param):
+                model_ckpt = args.param
+                logging.info(f"Using checkpoint from file: {model_ckpt}")
+            else: 
+                # expect wandb artifact ID
+                model_artifact = wandb.run.use_artifact(args.param)
+                model_artifact = model_artifact.download()
+                for file_name in glob.glob(model_artifact + '/*'):
+                    if file_name.endswith('.pt'):
+                        model_ckpt = file_name
+                logging.info(f"Downloaded wandb artifact: {args.param}, found model checkpoint: {model_ckpt}")
+            param = Path(model_ckpt)
             if not param.exists() and conf is not None:
                 param = Path(conf).parent / param
             p = torch.load(param, map_location='cpu')
@@ -148,7 +193,11 @@ class Predict:
         if args.gpu >= 0:
             self.model.to(torch.device("cuda", args.gpu))
 
-        self.predict(output_bpseq=args.bpseq, output_bpp=args.bpp, result=args.result, use_constraint=args.use_constraint)
+        self.predict(output_bpseq=None,    #  not supporting this
+                     output_bpp=args.bpp,  
+                     result=None,  #  supporting this 
+                     use_constraint=None,     # to prevent the target being passed in
+                    )
 
 
     @classmethod
@@ -156,21 +205,26 @@ class Predict:
         subparser = parser.add_parser('predict', help='predict')
         # input
         subparser.add_argument('input', type=str,
-                            help='FASTA-formatted file or list of BPseq files')
+                            help='Dataset. Pq file (file path, or hugging-face dataset in the format of "repo_id/file_name"). Required cols: seq_id, seq, db_structure')
+        # added to prevent training on super long sequences
+        subparser.add_argument('--max_num', type=int,
+                            help='Max number of seq to predict. For debug use.')
 
         subparser.add_argument('--seed', type=int, default=0, metavar='S',
                             help='random seed (default: 0)')
         subparser.add_argument('--gpu', type=int, default=-1, 
                             help='use GPU with the specified ID (default: -1 = CPU)')
         subparser.add_argument('--param', type=str, default='',
-                            help='file name of trained parameters') 
-        subparser.add_argument('--use-constraint', default=False, action='store_true')
-        subparser.add_argument('--result', type=str, default=None,
-                            help='output the prediction accuracy if reference structures are given')
-        subparser.add_argument('--bpseq', type=str, default=None,
-                            help='output the prediction with BPSEQ format to the specified directory')
+                            help='file path or wandb artifact of the checkpoint file') 
         subparser.add_argument('--bpp', type=str, default=None,
                             help='output the base-pairing probability matrix to the specified directory')
+
+        # Wandb settings
+        subparser.add_argument('--entity', type=str, help='Wandb entity')
+        subparser.add_argument('--project', type=str, help='Wandb project')
+        subparser.add_argument('--group', type=str, help='Wandb group')
+        subparser.add_argument('--job_type', type=str, help='Wandb job_type')
+        subparser.add_argument('--split_name', type=str, help='Training split') #
 
         gparser = subparser.add_argument_group("Network setting")
         gparser.add_argument('--model', choices=('Turner', 'Zuker', 'ZukerS', 'ZukerL', 'ZukerC', 'Mix', 'MixC'), default='Turner', 

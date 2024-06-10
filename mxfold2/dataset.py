@@ -1,7 +1,15 @@
 from itertools import groupby
 from torch.utils.data import Dataset
 import torch
+import re
+import os
 import math
+import logging
+import pandas as pd
+from tqdm import tqdm
+from typing import Tuple
+from huggingface_hub import hf_hub_download
+
 
 class FastaDataset(Dataset):
     def __init__(self, fasta):
@@ -29,6 +37,62 @@ class FastaDataset(Dataset):
             seq = "".join(s.strip() for s in faiter.__next__())
 
             yield (headerStr, seq, torch.tensor([]))
+
+
+class RnaSdbDataset(Dataset):
+
+    def __init__(self, pq_file_path: str,  # path to pq file, or HF dataset in the format of "{repo_id}/{file_name}"
+                 max_len: int = None):
+        # create dataset in format expected by mxfold
+        # each example is tuple of 3 elements:
+        # - [str] name of the "file" - we'll use `seq_id`
+        # - [str] sequence
+        # - [list] pair_indices
+        logging.info(f"Converting pq dataset: {pq_file_path}...")
+
+        if os.path.isfile(pq_file_path):
+            df = pd.read_parquet(pq_file_path)
+        else:
+            logging.info(f"Inferring repo and file for huggingface dataset: {pq_file_path}")
+            hf_user, hf_repo, hf_file = pq_file_path.split('/')
+            logging.info(f"Repo-id: {hf_user}/{hf_repo}, file: {hf_file}")
+            df = pd.read_parquet(
+                hf_hub_download(repo_id=f"{hf_user}/{hf_repo}", filename=hf_file, repo_type="dataset")
+            )
+        
+        self.data = []
+        for _, row in tqdm(df.iterrows(), total=len(df)):
+            seq_id = row['seq_id']
+            seq = row['seq']
+            if max_len is not None and len(seq) > max_len:
+                continue
+            pair_idx = row['pair_indices']
+            target = self.db_to_target(pair_idx, len(seq))
+            self.data.append((seq_id, seq, target))
+        logging.info(f"Converted {len(self.data)} examples (out of {len(df)}).")
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        return self.data[idx]
+
+    @staticmethod
+    def db_to_target(pair_idx: Tuple[list, list], seq_len: int) -> list:
+        # mxfold2 expect the target to be the pairing indices (i.e. 3rd col of BPSEQ format),
+        # with a leading 0 (i.e. list length is len(seq)+1)
+        # start with a list of 0's, 0 represent no-pairing
+        target = [0] * seq_len
+        # go through the pairs, set their corresponding entry to the pairing index
+        # note that we need 1-based index!!!
+        if len(pair_idx) > 0:  # handle edge case where there's no structure!
+            for i, j in zip(pair_idx[0], pair_idx[1]):  # 0-based
+                target[i] = j + 1  # 1-based
+        # add the leading 0  (I suspect they want the query and value to be both 1-based)
+        target = [0] + target   
+        # check len
+        assert len(target) == seq_len + 1
+        return torch.tensor(target)   # to be consistent with their code! this should be all int!!!!
 
 
 class BPseqDataset(Dataset):
@@ -110,3 +174,103 @@ class BPseqDataset(Dataset):
                     p.append([int(l[0]), int(l[1])])
 
         return (h, seq, torch.tensor(p))
+    
+
+
+# from https://github.com/andrewjjung47/rna_sdb/blob/75fc8895d8bb4f2fd2d31ef7156972a8cfba389c/rna_sdb/utils.py#L307
+NON_PAIRING_CHARS = re.compile(r"[a-zA-Z_\,-\.\:~]")
+
+
+class AllPairs(object):
+    def __init__(self, db_str):
+        self.db_str = db_str
+        self.pairs = (
+            []
+        )  # list of tuples, where each tuple is one paired positions (i, j)
+        # hold on to all bracket groups
+        self.bracket_round = PairedBrackets(left_str="(", right_str=")")
+        self.bracket_square = PairedBrackets(left_str="[", right_str="]")
+        self.bracket_triang = PairedBrackets(left_str="<", right_str=">")
+        self.bracket_curly = PairedBrackets(left_str="{", right_str="}")
+
+    def parse_db(self):
+        # parse dot-bracket notation
+        for i, s in enumerate(self.db_str):
+            # add s into bracket collection, if paired
+            # also check if any bracket group is completed, if so, flush
+            if re.match(NON_PAIRING_CHARS, s):
+                continue
+            elif self.bracket_round.is_compatible(s):
+                self.bracket_round.add_s(s, i)
+                # if self.bracket_round.is_complete():
+                #     self.pairs.extend(self.bracket_round.flush())
+            elif self.bracket_square.is_compatible(s):
+                self.bracket_square.add_s(s, i)
+                # if self.bracket_square.is_complete():
+                #     self.pairs.extend(self.bracket_square.flush())
+            elif self.bracket_triang.is_compatible(s):
+                self.bracket_triang.add_s(s, i)
+                # if self.bracket_triang.is_complete():
+                #     self.pairs.extend(self.bracket_triang.flush())
+            elif self.bracket_curly.is_compatible(s):
+                self.bracket_curly.add_s(s, i)
+                # if self.bracket_curly.is_complete():
+                #     self.pairs.extend(self.bracket_curly.flush())
+            else:
+                raise ValueError(
+                    "Unrecognized character {} at position {}".format(s, i)
+                )
+
+        # check that all groups are empty!!
+        bracket_groups = [
+            self.bracket_round,
+            self.bracket_curly,
+            self.bracket_triang,
+            self.bracket_square,
+        ]
+        for bracket in bracket_groups:
+            if not bracket.is_empty():
+                raise ValueError(
+                    "Bracket group {}-{} not symmetric: left stack".format(
+                        bracket.left_str, bracket.right_str, bracket.left_stack
+                    )
+                )
+
+        # collect and sort all pairs
+        pairs = []
+        for bracket in bracket_groups:
+            pairs.extend(bracket.pairs)
+        pairs = sorted(pairs)
+        self.pairs = pairs
+
+
+class PairedBrackets(object):
+    def __init__(self, left_str, right_str):
+        self.left_str = left_str
+        self.right_str = right_str
+        self.pairs = []  # list of tuples (i, j)
+        self.left_stack = []  # left positions
+
+    def is_empty(self):
+        return len(self.left_stack) == 0
+
+    def is_compatible(self, s):
+        return s in [self.left_str, self.right_str]
+
+    def add_s(self, s, pos):
+        if s == self.left_str:
+            self.left_stack.append(pos)
+        elif s == self.right_str:
+            # pop on item from left_stack
+            i = self.left_stack.pop()
+            self.pairs.append((i, pos))
+        else:
+            raise ValueError(
+                "Expect {} or {} but got {}".format(self.left_str, self.right_str, s)
+            )
+
+
+def db2pairs(s):
+    ap = AllPairs(s)
+    ap.parse_db()
+    return ap.pairs
