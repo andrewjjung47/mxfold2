@@ -297,7 +297,7 @@ class Train:
         subparser = parser.add_parser('train', help='training')
         # input
         subparser.add_argument('input', type=str,
-                            help='Training data. Pq file. Required cols: seq_id, seq, db_structure')
+                            help='Training data. Pq file (file path, or hugging-face dataset in the format of "repo_id/file_name"). Required cols: seq_id, seq, db_structure')
         subparser.add_argument('--test-input', type=str,
                             help='Test data. Pq file. Required cols: seq_id, seq, db_structure')
         # added to prevent training on super long sequences

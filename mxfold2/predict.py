@@ -180,12 +180,17 @@ class Predict:
         self.model, _ = self.build_model(args)
         if args.param != '':
             
-            model_artifact = wandb.run.use_artifact(args.param)
-            model_artifact = model_artifact.download()
-            for file_name in glob.glob(model_artifact + '/*'):
-                if file_name.endswith('.pt'):
-                    model_ckpt = file_name
-            logging.info(f"Downloaded wandb artifact: {args.param}, found model checkpoint: {model_ckpt}")
+            if os.path.isfile(args.param):
+                model_ckpt = args.param
+                logging.info(f"Using checkpoint from file: {model_ckpt}")
+            else: 
+                # expect wandb artifact ID
+                model_artifact = wandb.run.use_artifact(args.param)
+                model_artifact = model_artifact.download()
+                for file_name in glob.glob(model_artifact + '/*'):
+                    if file_name.endswith('.pt'):
+                        model_ckpt = file_name
+                logging.info(f"Downloaded wandb artifact: {args.param}, found model checkpoint: {model_ckpt}")
             param = Path(model_ckpt)
             if not param.exists() and conf is not None:
                 param = Path(conf).parent / param
@@ -209,7 +214,7 @@ class Predict:
         subparser = parser.add_parser('predict', help='predict')
         # input
         subparser.add_argument('input', type=str,
-                            help='Dataset. Pq file. Required cols: seq_id, seq, db_structure')
+                            help='Dataset. Pq file (file path, or hugging-face dataset in the format of "repo_id/file_name"). Required cols: seq_id, seq, db_structure')
         # added to prevent training on super long sequences
         subparser.add_argument('--max_num', type=int,
                             help='Max number of seq to predict. For debug use.')
@@ -219,7 +224,7 @@ class Predict:
         subparser.add_argument('--gpu', type=int, default=-1, 
                             help='use GPU with the specified ID (default: -1 = CPU)')
         subparser.add_argument('--param', type=str, default='',
-                            help='wandb artifact of the checkpoint file') 
+                            help='file path or wandb artifact of the checkpoint file') 
         # subparser.add_argument('--use-constraint', default=False, action='store_true')   # Alice: I want to prevent the target being passed in
         # subparser.add_argument('--result', type=str, default=None,
         #                     help='output the prediction accuracy if reference structures are given')

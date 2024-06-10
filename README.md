@@ -101,52 +101,52 @@ consistent with RNA-SDB format.
 To train model on RNA-SDB dataset hosted on huggingface-hub:
 
 ```bash
-export WDIR=wkdir/run_test/
+export WDIR=wkdir/run_test
 export DATASET="AliceGao/test1/split_1_cache_test.1000.pq"
+export ENTITY=my-wandb-entity    # replace with yours
+export PROJECT=rna-sdb-mxfold2-train  # replace with yours
+export GROUP=my-wandb-group  # replace with yours
+export JOBTYPE=my-wandb-job-type  # replace with yours
+export SPLITNAME=my-split-1  # replace with yours
 mkdir -p $WDIR
-CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param $WDIR/model.pth --save-config $WDIR/model.conf --gpu 0 --log-dir $WDIR --epochs 10 --train_max_len 1000 $DATASET
+CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param $WDIR/model.pth --save-config $WDIR/model.conf --gpu 0 --log-dir $WDIR --epochs 1 \
+ --entity $ENTITY --project $PROJECT --group debug --job_type $JOBTYPE --split_name $SPLITNAME \
+ $DATASET
 ```
 
-
-To train model on pq dataset (GPU):
-
-
-```bash
-mkdir -p wkdir/run_1/
-CUDA_VISIBLE_DEVICES=0 mxfold2 train --model MixC --param wkdir/run_1/model.pth --save-config wkdir/run_1/model.conf --gpu 0 --log-dir wkdir/run_1/  --epochs 10 --train_max_len 1000 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/split_1_cache_train.pq
-```
-
-Training model on pq dataset (CPU-test):
-
-```bash
-mkdir -p wkdir/run_0/
-mxfold2 train --model MixC --param wkdir/run_0/model.pth --save-config wkdir/run_0/model.conf \
---log-dir wkdir/run_0/  \
- --epochs 2  wkdir/split_3_cache_test.pq
-```
-
-TODO slow for long sequences?
+At the end of training, the checkpoint `$WDIR/checkpoint.pt` is exported.
 
 
 ### Inference
 
+> [!CAUTION]
+> Replace `DATASET` with the actual rna-sdb dataset (test-split) (right now it is a toy dataset in Alice's HF repo).
 
-Inference on pq dataset (set `max_num` to process a small number of seqs for debugging):
+
+Run inference on RNA-SDB dataset, using the model trained from above:
 
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param wkdir/debug_1/checkpoint.pt --gpu 0 --bpp wkdir/debug_1/prediction.pq --max_num 10 /mnt/dg_shared_truenas/for_alice/work/rna_sdb/datasets/rna_sdb/split_3_cache_test.pq
+export WDIR=wkdir/run_test
+export DATASET="AliceGao/test1/split_1_cache_test.1000.pq"
+export ENTITY=my-wandb-entity    # replace with yours
+export PROJECT=rna-sdb-mxfold2-train  # replace with yours
+export GROUP=my-wandb-group  # replace with yours
+export JOBTYPE=my-wandb-job-type  # replace with yours
+export SPLITNAME=my-split-1  # replace with yours
+CUDA_VISIBLE_DEVICES=0 mxfold2 predict --model MixC --param $WDIR/checkpoint.pt --gpu 0 --bpp $WDIR/prediction.pq \
+  --entity $ENTITY --project $PROJECT --group debug --job_type $JOBTYPE --split_name $SPLITNAME \
+  $DATASET
 ```
 
 
-- writes to a df with 3 cols: 
+The above inference script writes to a dataframe (in parquet format) with 3 columns: 
 
-    - `seq`: just the sequence
+    - `seq`: sequence
 
-    - `bpseq`: bpseq-like list (length `len(seq)`) of 3-tuples, something like: `[[1, 'A', 0], [2, 'A', 0], [3, 'G', 0], [4, 'A', 0], ...]`  (note that bpseq indices are 1-based)
+    - `bpseq`: bpseq-like list (length `len(seq)`) of 3-tuples, e.g. `[[1, 'A', 0], [2, 'A', 0], [3, 'G', 0], [4, 'A', 0], ...]`  (note that bpseq indices are 1-based)
 
-    - `bp_matrix`: 2D matrix returned by their script, I'm still not sure what this is (did not dive deep into their inference code) 
-    (note that the shape is `(len(seq)+1) x (len(seq)+1)`)
+    - `bp_matrix`: 2D matrix computed by MXFOLD2, with shape `(len(seq)+1) x (len(seq)+1)`
 
 
 
